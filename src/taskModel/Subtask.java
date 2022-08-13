@@ -1,20 +1,21 @@
+package taskModel;
+
 public class Subtask extends Task {
 
-    private int idSubtaskForEpic;
-
-    public void setIdSubtaskForEpic(int idSubtaskForEpic) {
-
-        this.idSubtaskForEpic = idSubtaskForEpic;
-    }
+    private final int idSubtaskForEpic;
 
     public int getIdSubtaskForEpic() {
-
         return idSubtaskForEpic;
+    }
+
+    public Subtask(String name, String description, String status, int idSubtaskForEpic) {
+        super(name, description, status);
+        this.idSubtaskForEpic = idSubtaskForEpic;
     }
 
     @Override
     public String toString() {
-        return "Subtask{" +
+        return "taskModel.Subtask{" +
                 "idSubtaskForEpic=" + idSubtaskForEpic +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

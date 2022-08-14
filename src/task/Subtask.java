@@ -1,4 +1,4 @@
-package taskModel;
+package task;
 
 public class Subtask extends Task {
 
@@ -15,7 +15,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "taskModel.Subtask{" +
+        return "task.Subtask{" +
                 "idSubtaskForEpic=" + idSubtaskForEpic +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

@@ -1,5 +1,5 @@
 import manager.Manager;
-import taskModel.*;
+import task.*;
 
 public class Main {
 
@@ -22,8 +22,11 @@ public class Main {
         Subtask subtask1 = new Subtask("Покупка сахара", "1кг", "DONE", 3);
         manager.createSubtask(subtask1);
 
-        Epic epic1 = new Epic("Поход в ТЦ", "В центре", "NEW");
+        Epic epic1 = new Epic("Поход в музей", "В центре", "NEW");
         manager.createEpic(epic1);
+        System.out.println(epic1);
+        epic1.setName("Поход в ТЦ");
+        manager.updateEpic(epic1);
 
         Subtask subtask2 = new Subtask("Покупка одежды", "Брюки", "DONE", 6);
         manager.createSubtask(subtask2);
@@ -43,6 +46,9 @@ public class Main {
 
         manager.deleteTaskById(1);
         manager.deleteEpicById(6);
+        System.out.println(manager);
+
+        manager.deleteAllSubtask();
         System.out.println(manager);
     }
 }

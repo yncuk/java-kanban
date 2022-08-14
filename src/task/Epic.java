@@ -1,4 +1,5 @@
-package taskModel;
+package task;
+
 import java.util.HashMap;
 
 public class Epic extends Task {
@@ -17,14 +18,19 @@ public class Epic extends Task {
         this.subtaskForEpic.remove(idSubtask);
     }
 
+    public void removeAllSubtaskForEpic() {
+        this.subtaskForEpic.clear();
+    }
+
     public Epic(String name, String description, String status) {
         super(name, description, status);
     }
 
     @Override
     public String toString() {
-        return "taskModel.Epic{" +
-                "name='" + name + '\'' +
+        return "task.Epic{" +
+                "Name=" + name +
+                ", Список подзадач='" + subtaskForEpic + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status='" + status + '\'' +

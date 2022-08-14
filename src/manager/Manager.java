@@ -1,5 +1,7 @@
 package manager;
-import taskModel.*;
+
+import task.*;
+
 import java.util.HashMap;
 
 public class Manager {
@@ -26,6 +28,10 @@ public class Manager {
 
     public void deleteAllSubtask() {
         subtaskHashMap.clear();
+        for (Integer key : epicHashMap.keySet()) {
+            epicHashMap.get(key).removeAllSubtaskForEpic();
+            changeStatusEpic(epicHashMap.get(key));
+        }
     }
 
     public void deleteAllEpic() {
@@ -38,9 +44,7 @@ public class Manager {
         deleteAllSubtask();
         deleteAllEpic();
     }
-
-    // думал, что это будет проверкой Null,
-    // если элемента не будет то Null и вернется, перемудрил
+    //Очень толковые комментарии)) спасибо!
     public Task getTaskById(int idTask) {
         return taskHashMap.get(idTask);
     }
@@ -63,13 +67,13 @@ public class Manager {
     }
 
     public Subtask createSubtask(Subtask subtask) {
-        if (!subtaskHashMap.containsValue(subtask)) {
+        if (!subtaskHashMap.containsValue(subtask) && epicHashMap.containsKey(subtask.getIdSubtaskForEpic())) {
             subtask.setId(id);
             id++;
             subtaskHashMap.put(subtask.getId(), subtask);
             epicHashMap.get(subtask.getIdSubtaskForEpic()).setSubtaskForEpic(subtask.getId(), subtask);
             changeStatusEpic(epicHashMap.get(subtask.getIdSubtaskForEpic()));
-        } else System.out.println("Такая подзадача уже есть");
+        } else System.out.println("Такая подзадача уже есть или указан неправильный ID эпика");
         return subtask;
     }
 
@@ -103,12 +107,9 @@ public class Manager {
                 epicHashMap.containsKey(subtask.getIdSubtaskForEpic()) &&
                 subtaskHashMap.get(subtask.getId()).getIdSubtaskForEpic() != subtask.getIdSubtaskForEpic()) {
 
-            Epic epic = getEpicById(subtaskHashMap.get(subtask.getId()).getIdSubtaskForEpic());
             deleteSubtaskById(subtask.getId());
             subtaskHashMap.put(subtask.getId(), subtask);
-            epic.removeSubtaskForEpic(subtask.getId());
-            changeStatusEpic(epic);
-            epic = getEpicById(subtask.getIdSubtaskForEpic());
+            Epic epic = getEpicById(subtask.getIdSubtaskForEpic());
             epic.setSubtaskForEpic(subtask.getId(), subtask);
             changeStatusEpic(epic);
 
@@ -118,7 +119,8 @@ public class Manager {
 
     public void updateEpic(Epic epic) {
         if (epicHashMap.containsKey(epic.getId())) {
-            epicHashMap.put(epic.getId(), epic);
+            epicHashMap.get(epic.getId()).setName(epic.getName());
+            epicHashMap.get(epic.getId()).setDescription(epic.getDescription());
         } else System.out.println("Эпика с таким ID нет, добавьте новый эпик");
     }
 
@@ -131,8 +133,8 @@ public class Manager {
     public void deleteSubtaskById(int idSubtask) {
         if (subtaskHashMap.containsKey(idSubtask)) {
             subtaskHashMap.remove(idSubtask);
-            changeStatusEpic(getEpicById(getSubtaskById(idSubtask).getIdSubtaskForEpic()));
             getEpicById(getSubtaskById(idSubtask).getIdSubtaskForEpic()).removeSubtaskForEpic(idSubtask);
+            changeStatusEpic(getEpicById(getSubtaskById(idSubtask).getIdSubtaskForEpic()));
         } else System.out.println("Подзадачи с таким ID нет");
     }
 

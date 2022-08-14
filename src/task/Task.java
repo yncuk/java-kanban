@@ -1,4 +1,4 @@
-package taskModel;
+package task;
 
 public class Task {
     protected String name;
@@ -22,6 +22,22 @@ public class Task {
         return status;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Task(String name, String description, String status) {
         this.name = name;
         this.description = description;
@@ -30,7 +46,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "taskModel.Task{" +
+        return "task.Task{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +

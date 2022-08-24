@@ -22,7 +22,7 @@ public class Epic extends Task {
         this.subtaskForEpic.clear();
     }
 
-    public Epic(String name, String description, String status) {
+    public Epic(String name, String description, TaskStatus status) {
         super(name, description, status);
     }
 
@@ -30,7 +30,7 @@ public class Epic extends Task {
     public String toString() {
         return "task.Epic{" +
                 "Name=" + name +
-                ", Список подзадач='" + subtaskForEpic + '\'' +
+                ", listSubtaskForEpic='" + subtaskForEpic + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status='" + status + '\'' +

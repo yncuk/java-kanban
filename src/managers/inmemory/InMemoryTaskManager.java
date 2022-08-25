@@ -1,5 +1,8 @@
-package manager;
+package managers.inmemory;
 
+import managers.HistoryManager;
+import managers.TaskManager;
+import managers.factory.Managers;
 import task.*;
 
 import java.util.HashMap;

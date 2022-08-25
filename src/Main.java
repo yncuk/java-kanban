@@ -1,5 +1,5 @@
-import manager.Managers;
-import manager.TaskManager;
+import managers.factory.Managers;
+import managers.TaskManager;
 import task.*;
 
 public class Main {

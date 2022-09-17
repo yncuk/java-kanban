@@ -33,12 +33,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
-        taskHashMap.clear();
+        for (int i = 0; i < taskHashMap.size(); i++) {
+            deleteTaskById(i);
+        }
     }
 
     @Override
     public void deleteAllSubtask() {
-        subtaskHashMap.clear();
+        for (int i = 0; i < subtaskHashMap.size(); i++) {
+            deleteSubtaskById(i);
+        }
         for (Epic epic : epicHashMap.values()) {
             epic.removeAllSubtaskForEpic();
             changeStatusEpic(epic);
@@ -47,7 +51,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllEpic() {
-        epicHashMap.clear();
+        for (int i = 0; i < epicHashMap.size(); i++) {
+            deleteEpicById(i);
+        }
         deleteAllSubtask();
     }
 
@@ -159,15 +165,21 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTaskById(int idTask) {
         if (taskHashMap.containsKey(idTask)) {
             taskHashMap.remove(idTask);
+            historyManager.remove(idTask);
         } else System.out.println("Задачи с таким ID нет");
     }
 
     @Override
     public void deleteSubtaskById(int idSubtask) {
         if (subtaskHashMap.containsKey(idSubtask)) {
-            subtaskHashMap.remove(idSubtask);
-            epicHashMap.get(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic()).removeSubtaskForEpic(idSubtask);
-            changeStatusEpic(epicHashMap.get(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic()));
+            if (epicHashMap.containsKey(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic())) {
+                epicHashMap.get(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic()).removeSubtaskForEpic(idSubtask);
+                subtaskHashMap.remove(idSubtask);
+                changeStatusEpic(epicHashMap.get(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic()));
+            } else {
+                subtaskHashMap.remove(idSubtask);
+            }
+            historyManager.remove(idSubtask);
         } else System.out.println("Подзадачи с таким ID нет");
     }
 
@@ -176,8 +188,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (epicHashMap.containsKey(idEpic)) {
             for (int key : getAllSubtaskByEpic(epicHashMap.get(idEpic)).keySet()) {
                 subtaskHashMap.remove(key);
+                historyManager.remove(key);
             }
             epicHashMap.remove(idEpic);
+            historyManager.remove(idEpic);
         } else System.out.println("Эпика с таким ID нет");
     }
 

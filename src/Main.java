@@ -61,7 +61,16 @@ public class Main {
         System.out.println(manager.getHistory());
         manager.getEpicById(3);
         System.out.println(manager.getHistory());
+
+        manager.deleteTaskById(2);
         manager.getTaskById(1);
+        System.out.println(manager.getHistory());
+
+        manager.getSubtaskById(5);
+        System.out.println(manager.getHistory());
+
+        manager.deleteEpicById(3);
+        manager.deleteSubtaskById(5);
         System.out.println(manager.getHistory());
     }
 }

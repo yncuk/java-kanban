@@ -47,8 +47,6 @@ public interface TaskManager {
 
     HashMap<Integer, Subtask> getAllSubtaskByEpic(Epic epic);
 
-    void changeStatusEpic(Epic epic);
-
     List<Task> getHistory();
 
 }

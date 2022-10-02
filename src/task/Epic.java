@@ -6,8 +6,15 @@ public class Epic extends Task {
 
     HashMap<Integer, Subtask> subtaskForEpic = new HashMap<>();
 
+    private final TaskType taskType = TaskType.Epic;
+
     public HashMap<Integer, Subtask> getSubtaskForEpic() {
         return subtaskForEpic;
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return taskType;
     }
 
     public void setSubtaskForEpic(Integer id, Subtask subtask) {

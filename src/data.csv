@@ -1,0 +1,7 @@
+id,type,name,status,description,epic
+1,Task,Купить хлеб,NEW,В магните,
+2,Task,Купить воду,DONE,В пятерочке,
+3,Epic,Поход в магазин,NEW,В макси,
+6,Epic,Поход в ТЦ,NEW,В центре,
+
+2,3,1,

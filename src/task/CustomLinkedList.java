@@ -1,13 +1,15 @@
 package task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CustomLinkedList {
 
-    public CustomLinkedList(Map<Integer, Node> nodeMap) {
-        this.nodeMap = nodeMap;
+    public CustomLinkedList() {
+
+        this.nodeMap = new HashMap<>();
     }
 
     private final Map<Integer, Node> nodeMap;

@@ -4,12 +4,11 @@ import managers.HistoryManager;
 import task.CustomLinkedList;
 import task.Task;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
-    CustomLinkedList customLinkedList = new CustomLinkedList(new HashMap<>());
+    CustomLinkedList customLinkedList = new CustomLinkedList();
 
     @Override
     public void add(Task task) {

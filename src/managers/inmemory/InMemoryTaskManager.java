@@ -10,11 +10,11 @@ import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
     private int id = 1;
-    private final HashMap<Integer, Task> taskHashMap = new HashMap<>();
-    private final HashMap<Integer, Subtask> subtaskHashMap = new HashMap<>();
-    private final HashMap<Integer, Epic> epicHashMap = new HashMap<>();
+    protected final HashMap<Integer, Task> taskHashMap = new HashMap<>();
+    protected final HashMap<Integer, Subtask> subtaskHashMap = new HashMap<>();
+    protected final HashMap<Integer, Epic> epicHashMap = new HashMap<>();
 
-    HistoryManager historyManager = Managers.getDefaultHistory();
+    protected HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
     public HashMap<Integer, Task> getListOfAllTasks() {
@@ -33,16 +33,18 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
-        for (int i = 0; i < taskHashMap.size(); i++) {
-            deleteTaskById(i);
+        for (int key : taskHashMap.keySet()) {
+            historyManager.remove(key);
         }
+        taskHashMap.clear();
     }
 
     @Override
     public void deleteAllSubtask() {
-        for (int i = 0; i < subtaskHashMap.size(); i++) {
-            deleteSubtaskById(i);
+        for (int key : subtaskHashMap.keySet()) {
+            historyManager.remove(key);
         }
+        subtaskHashMap.clear();
         for (Epic epic : epicHashMap.values()) {
             epic.removeAllSubtaskForEpic();
             changeStatusEpic(epic);
@@ -51,9 +53,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllEpic() {
-        for (int i = 0; i < epicHashMap.size(); i++) {
-            deleteEpicById(i);
+        for (int key : epicHashMap.keySet()) {
+            historyManager.remove(key);
         }
+        epicHashMap.clear();
         deleteAllSubtask();
     }
 
@@ -173,9 +176,10 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteSubtaskById(int idSubtask) {
         if (subtaskHashMap.containsKey(idSubtask)) {
             if (epicHashMap.containsKey(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic())) {
-                epicHashMap.get(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic()).removeSubtaskForEpic(idSubtask);
+                int idSubtaskForEpic = subtaskHashMap.get(idSubtask).getIdSubtaskForEpic();
+                epicHashMap.get(idSubtaskForEpic).removeSubtaskForEpic(idSubtask);
                 subtaskHashMap.remove(idSubtask);
-                changeStatusEpic(epicHashMap.get(subtaskHashMap.get(idSubtask).getIdSubtaskForEpic()));
+                changeStatusEpic(epicHashMap.get(idSubtaskForEpic));
             } else {
                 subtaskHashMap.remove(idSubtask);
             }

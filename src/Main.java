@@ -1,13 +1,22 @@
 import managers.factory.Managers;
 import managers.TaskManager;
+import managers.filebacked.FileBackedTasksManager;
 import task.*;
+
+import java.io.File;
+import java.io.IOException;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        TaskManager manager = Managers.getDefault();
+        //TaskManager manager = Managers.getDefault();
 
+        TaskManager manager = FileBackedTasksManager.loadFromFile(new File("src/data.csv"));
+        System.out.println(manager);
+        System.out.println(manager.getHistory());
+
+        /*TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         manager.createTask(task);
 
@@ -52,25 +61,26 @@ public class Main {
         manager.deleteAllSubtask();
         System.out.println(manager);
 
-        manager.deleteTaskById(1);
-        manager.deleteEpicById(6);
+
+        //manager.deleteEpicById(6);
         System.out.println(manager);
 
         System.out.println("_______________________________");
         manager.getTaskById(2);
-        System.out.println(manager.getHistory());
+        //System.out.println(manager.getHistory());
         manager.getEpicById(3);
-        System.out.println(manager.getHistory());
+        //System.out.println(manager.getHistory());
 
-        manager.deleteTaskById(2);
+        //manager.deleteTaskById(2);
         manager.getTaskById(1);
-        System.out.println(manager.getHistory());
+        //System.out.println(manager.getHistory());
 
         manager.getSubtaskById(5);
-        System.out.println(manager.getHistory());
+        System.out.println(manager);
+        System.out.println(manager.getHistory());*/
 
-        manager.deleteEpicById(3);
-        manager.deleteSubtaskById(5);
-        System.out.println(manager.getHistory());
+        //manager.deleteEpicById(3);
+        //manager.deleteSubtaskById(5);
+        //System.out.println(manager.getHistory());
     }
 }

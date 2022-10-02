@@ -4,8 +4,15 @@ public class Subtask extends Task {
 
     private final int idSubtaskForEpic;
 
+    private final TaskType taskType = TaskType.Subtask;
+
     public int getIdSubtaskForEpic() {
         return idSubtaskForEpic;
+    }
+
+    @Override
+    public TaskType getTaskType() {
+        return taskType;
     }
 
     public Subtask(String name, String description, TaskStatus status, int idSubtaskForEpic) {

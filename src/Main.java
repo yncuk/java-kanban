@@ -12,11 +12,11 @@ public class Main {
 
         //TaskManager manager = Managers.getDefault();
 
-        TaskManager manager = FileBackedTasksManager.loadFromFile(new File("src/data.csv"));
-        System.out.println(manager);
-        System.out.println(manager.getHistory());
+        //TaskManager manager = FileBackedTasksManager.loadFromFile(new File("src/data.csv"));
+        //System.out.println(manager);
+        //System.out.println(manager.getHistory());
 
-        /*TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
+        TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         manager.createTask(task);
 
@@ -58,7 +58,7 @@ public class Main {
         System.out.println(manager.getHistory());
 
         System.out.println("Здесь удаление");
-        manager.deleteAllSubtask();
+        //manager.deleteAllSubtask();
         System.out.println(manager);
 
 
@@ -76,8 +76,9 @@ public class Main {
         //System.out.println(manager.getHistory());
 
         manager.getSubtaskById(5);
+
         System.out.println(manager);
-        System.out.println(manager.getHistory());*/
+        System.out.println(manager.getHistory());
 
         //manager.deleteEpicById(3);
         //manager.deleteSubtaskById(5);

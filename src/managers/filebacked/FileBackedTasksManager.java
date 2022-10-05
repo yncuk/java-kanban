@@ -10,7 +10,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private final File file;
 
-    //Да он был в задании как рекомендация
     public FileBackedTasksManager(File file) {
         this.file = file;
     }
@@ -20,19 +19,19 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             bufferedWriter.write("id,type,name,status,description,epic");
             bufferedWriter.newLine();
             for (Task task : taskHashMap.values()) {
-                bufferedWriter.write(ToCsvString.toStringTask(task));
+                bufferedWriter.write(ToCsvConverter.toCsvString(task));
                 bufferedWriter.newLine();
             }
             for (Subtask subtask : subtaskHashMap.values()) {
-                bufferedWriter.write(ToCsvString.toStringSubtask(subtask));
+                bufferedWriter.write(ToCsvConverter.toCsvString(subtask));
                 bufferedWriter.newLine();
             }
             for (Epic epic : epicHashMap.values()) {
-                bufferedWriter.write(ToCsvString.toStringEpic(epic));
+                bufferedWriter.write(ToCsvConverter.toCsvString(epic));
                 bufferedWriter.newLine();
             }
             bufferedWriter.write("\n");
-            bufferedWriter.write(ToCsvString.historyToString(historyManager));
+            bufferedWriter.write(ToCsvConverter.historyToString(historyManager));
         } catch (IOException e) {
             throw new ManagerSaveException("Файл не найден", e);
         }
@@ -47,7 +46,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 line = bufferedReader.readLine();
                 while (!line.isBlank()) {
                     System.out.println(line);
-                    Task task = ToStringCsv.fromString(line);
+                    Task task = FromCsvConverter.fromString(line);
                     if (task.getTaskType().equals(TaskType.Task)) {
                         fileBackedTasksManager.taskHashMap.put(task.getId(), task);
                     } else if (task.getTaskType().equals(TaskType.Subtask)) {
@@ -60,182 +59,127 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 System.out.println(line);
                 line = bufferedReader.readLine();
                 System.out.println(line);
-                List<Integer> list = ToStringCsv.historyFromString(line);
+                List<Integer> list = FromCsvConverter.historyFromString(line);
                 for (Integer i : list) {
-                    if (fileBackedTasksManager.taskHashMap.containsKey(i)) {
-                        fileBackedTasksManager.historyManager.add(fileBackedTasksManager.taskHashMap.get(i));
-                    } else if (fileBackedTasksManager.subtaskHashMap.containsKey(i)) {
-                        fileBackedTasksManager.historyManager.add(fileBackedTasksManager.subtaskHashMap.get(i));
-                    } else if (fileBackedTasksManager.epicHashMap.containsKey(i)) {
-                        fileBackedTasksManager.historyManager.add(fileBackedTasksManager.epicHashMap.get(i));
-                    } else System.out.println("Такой задачи нет");
+                    addToHistory(i, fileBackedTasksManager);
                 }
                 System.out.println("История сформирована");
             }
         } catch (IOException e) {
-            throw  new ManagerSaveException("Файл не найден", e);
+            throw new ManagerSaveException("Файл не найден", e);
         }
         return fileBackedTasksManager;
+    }
+
+    private static void addToHistory(Integer i, FileBackedTasksManager fileBackedTasksManager) {
+        if (fileBackedTasksManager.taskHashMap.containsKey(i)) {
+            fileBackedTasksManager.historyManager.add(fileBackedTasksManager.taskHashMap.get(i));
+        } else if (fileBackedTasksManager.subtaskHashMap.containsKey(i)) {
+            fileBackedTasksManager.historyManager.add(fileBackedTasksManager.subtaskHashMap.get(i));
+        } else if (fileBackedTasksManager.epicHashMap.containsKey(i)) {
+            fileBackedTasksManager.historyManager.add(fileBackedTasksManager.epicHashMap.get(i));
+        } else System.out.println("Такой задачи нет");
     }
 
     @Override
     public void deleteAllTasks() {
         super.deleteAllTasks();
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void deleteAllSubtask() {
         super.deleteAllSubtask();
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void deleteAllEpic() {
         super.deleteAllEpic();
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void deleteAllTypeTasks() {
         super.deleteAllTypeTasks();
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void updateTask(Task task) {
         super.updateTask(task);
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
         super.updateSubtask(subtask);
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void updateEpic(Epic epic) {
         super.updateEpic(epic);
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void deleteTaskById(int idTask) {
         super.deleteTaskById(idTask);
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void deleteSubtaskById(int idSubtask) {
         super.deleteSubtaskById(idSubtask);
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void deleteEpicById(int idEpic) {
         super.deleteEpicById(idEpic);
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
-    // если возвращать super, то последнее действие не попадет в файл, так как save() нужно писать до
-    // return, может можно как то по другому сделать?
+    // понял, спасибо :)
     @Override
     public Task getTaskById(int idTask) {
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-        return super.getTaskById(idTask);
+        Task task = super.getTaskById(idTask);
+        save();
+        return task;
     }
 
     @Override
     public Subtask getSubtaskById(int idSubtask) {
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-        return super.getSubtaskById(idSubtask);
+        Subtask subtask = super.getSubtaskById(idSubtask);
+        save();
+        return subtask;
     }
 
     @Override
     public Epic getEpicById(int idEpic) {
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-        return super.getEpicById(idEpic);
+        Epic epic = super.getEpicById(idEpic);
+        save();
+        return epic;
     }
 
     @Override
     public Task createTask(Task task) {
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-        return super.createTask(task);
+        Task newTask = super.createTask(task);
+        save();
+        return newTask;
     }
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-        return super.createSubtask(subtask);
+        Subtask newSubtask = super.createSubtask(subtask);
+        save();
+        return newSubtask;
     }
 
     @Override
     public Epic createEpic(Epic epic) {
-        try {
-            save();
-        } catch (ManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-        return super.createEpic(epic);
+        Epic newEpic = super.createEpic(epic);
+        save();
+        return newEpic;
     }
 }

@@ -7,19 +7,19 @@ import task.Task;
 
 import java.util.stream.Collectors;
 
-public class ToCsvString {
+public class ToCsvConverter {
 
-    static public String toStringTask(Task task) {
+    static public String toCsvString(Task task) {
         return task.getId() + "," + task.getTaskType() + "," + task.getName() + "," + task.getStatus() + "," +
                 task.getDescription();
     }
 
-    static public String toStringSubtask(Subtask subtask) {
+    static public String toCsvString(Subtask subtask) {
         return subtask.getId() + "," + subtask.getTaskType() + "," + subtask.getName() + "," + subtask.getStatus() +
                 "," + subtask.getDescription() + ","  + subtask.getIdSubtaskForEpic();
     }
 
-    static public String toStringEpic(Epic epic) {
+    static public String toCsvString(Epic epic) {
         return epic.getId() + "," + epic.getTaskType() + "," + epic.getName() + "," + epic.getStatus() + "," +
                 epic.getDescription();
     }

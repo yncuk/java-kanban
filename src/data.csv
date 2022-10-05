@@ -7,4 +7,4 @@ id,type,name,status,description,epic
 3,Epic,Поход в магазин,IN_PROGRESS,В макси
 6,Epic,Поход в ТЦ,NEW,В центре
 
-5,2,3,1
+2,3,1,5

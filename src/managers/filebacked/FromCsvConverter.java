@@ -2,10 +2,10 @@ package managers.filebacked;
 
 import task.*;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
-public class ToStringCsv {
+public class FromCsvConverter {
     public static Task fromString(String value) {
         String[] split = value.split(",");
         Task task;
@@ -27,7 +27,7 @@ public class ToStringCsv {
 
     public static List<Integer> historyFromString(String value) {
         String[] split = value.split(",");
-        List<Integer> history = new LinkedList<>();
+        List<Integer> history = new ArrayList<>();
         for (String current : split) {
             history.add(Integer.parseInt(current));
         }

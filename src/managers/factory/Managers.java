@@ -21,4 +21,7 @@ public class Managers {
         return new FileBackedTasksManager(file);
     }
 
+    public static TaskManager getFileBakedTaskManagerFromFile(File file) {
+        return FileBackedTasksManager.loadFromFile(file);
+    }
 }

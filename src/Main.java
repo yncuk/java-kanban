@@ -1,6 +1,5 @@
 import managers.factory.Managers;
 import managers.TaskManager;
-import managers.filebacked.FileBackedTasksManager;
 import task.*;
 
 import java.io.File;
@@ -12,7 +11,7 @@ public class Main {
 
         //TaskManager manager = Managers.getDefault();
 
-        //TaskManager manager = FileBackedTasksManager.loadFromFile(new File("src/data.csv"));
+        //TaskManager manager = Managers.getFileBakedTaskManagerFromFile(new File("src/data.csv"));
         //System.out.println(manager);
         //System.out.println(manager.getHistory());
 

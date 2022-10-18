@@ -11,17 +11,18 @@ public class ToCsvConverter {
 
     static public String toCsvString(Task task) {
         return task.getId() + "," + task.getTaskType() + "," + task.getName() + "," + task.getStatus() + "," +
-                task.getDescription();
+                task.getDuration() + "," + task.getStartTime() + "," + task.getEndTime() + "," + task.getDescription();
     }
 
     static public String toCsvString(Subtask subtask) {
         return subtask.getId() + "," + subtask.getTaskType() + "," + subtask.getName() + "," + subtask.getStatus() +
+                "," + subtask.getDuration() + "," + subtask.getStartTime() + "," + subtask.getEndTime() +
                 "," + subtask.getDescription() + ","  + subtask.getIdSubtaskForEpic();
     }
 
     static public String toCsvString(Epic epic) {
         return epic.getId() + "," + epic.getTaskType() + "," + epic.getName() + "," + epic.getStatus() + "," +
-                epic.getDescription();
+                epic.getDuration() + "," + epic.getStartTime() + "," + epic.getEndTime() + "," + epic.getDescription();
     }
 
     static public String historyToString(HistoryManager manager) {

@@ -16,7 +16,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private void save() throws ManagerSaveException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
-            bufferedWriter.write("id,type,name,status,description,epic");
+            bufferedWriter.write("id,type,name,status,duration,startTime,endTime,description,epic");
             bufferedWriter.newLine();
             for (Task task : taskHashMap.values()) {
                 bufferedWriter.write(ToCsvConverter.toCsvString(task));
@@ -140,7 +140,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         super.deleteEpicById(idEpic);
         save();
     }
-    // понял, спасибо :)
+
     @Override
     public Task getTaskById(int idTask) {
         Task task = super.getTaskById(idTask);

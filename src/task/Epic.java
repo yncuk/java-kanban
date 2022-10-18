@@ -1,15 +1,48 @@
 package task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 public class Epic extends Task {
 
     HashMap<Integer, Subtask> subtaskForEpic = new HashMap<>();
 
+    private final Duration duration = getSumDurationSubtask();
+    private final LocalDateTime startTime = getStartTime();
+    private final LocalDateTime endTime = getStartTime();
     private final TaskType taskType = TaskType.Epic;
 
     public HashMap<Integer, Subtask> getSubtaskForEpic() {
         return subtaskForEpic;
+    }
+
+    public Duration getSumDurationSubtask() {
+        Duration sum = Duration.ofMinutes(0);
+        for (Subtask subtask: subtaskForEpic.values()) {
+            sum = sum.plus(subtask.getDuration());
+        }
+        return sum;
+    }
+
+    public LocalDateTime getStartTime() {
+        LocalDateTime start = LocalDateTime.MAX;
+        for (Subtask subtask: subtaskForEpic.values()) {
+            if (start.isAfter(subtask.getStartTime())) {
+                start = subtask.getStartTime();
+            }
+        }
+        return start;
+    }
+
+    public LocalDateTime getEndTime() {
+        LocalDateTime end = LocalDateTime.MIN;
+        for (Subtask subtask: subtaskForEpic.values()) {
+            if (end.isBefore(subtask.getEndTime())) {
+                end = subtask.getEndTime();
+            }
+        }
+        return end;
     }
 
     @Override

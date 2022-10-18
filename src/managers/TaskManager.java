@@ -2,7 +2,6 @@ package managers;
 
 import task.*;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public interface TaskManager {
 
     Epic getEpicById(int idEpic);
 
-    Task createTask(Task task) throws IOException;
+    Task createTask(Task task);
 
     Subtask createSubtask(Subtask subtask);
 

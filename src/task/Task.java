@@ -1,12 +1,47 @@
 package task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Task {
     protected String name;
     protected String description;
     protected int id;
     protected TaskStatus status;
+    protected Duration duration;
+    protected LocalDateTime startTime;
+    protected LocalDateTime endTime = getEndTime();
 
     private TaskType taskType = TaskType.Task;
+
+    public LocalDateTime getEndTime() {
+        if (duration != null && startTime != null) {
+            return startTime.plus(duration);
+        } else {
+            System.out.println("Сначала добавьте продолжительность задачи и дату начала задачи");
+        }
+        return null;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
 
     public void setId(int id) {
         this.id = id;

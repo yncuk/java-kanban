@@ -8,46 +8,61 @@ public class Epic extends Task {
 
     HashMap<Integer, Subtask> subtaskForEpic = new HashMap<>();
 
-    private final Duration duration = getSumDurationSubtask();
-    private final LocalDateTime startTime = getStartTime();
-    private final LocalDateTime endTime = getStartTime();
-    private final TaskType taskType = TaskType.Epic;
-
     public HashMap<Integer, Subtask> getSubtaskForEpic() {
         return subtaskForEpic;
     }
 
-    public Duration getSumDurationSubtask() {
-        Duration sum = Duration.ofMinutes(0);
+    public Duration getDuration() {
+        duration = Duration.ofMinutes(0);
         for (Subtask subtask: subtaskForEpic.values()) {
-            sum = sum.plus(subtask.getDuration());
+            if (subtask.getDuration() != null) {
+                duration = duration.plus(subtask.getDuration());
+            }
         }
-        return sum;
+        return duration;
     }
 
     public LocalDateTime getStartTime() {
-        LocalDateTime start = LocalDateTime.MAX;
+        startTime = LocalDateTime.MAX;
         for (Subtask subtask: subtaskForEpic.values()) {
-            if (start.isAfter(subtask.getStartTime())) {
-                start = subtask.getStartTime();
+            if (subtask.getStartTime() != null) {
+                if (startTime.isAfter(subtask.getStartTime())) {
+                    startTime = subtask.getStartTime();
+                }
             }
         }
-        return start;
+        return startTime;
     }
 
     public LocalDateTime getEndTime() {
-        LocalDateTime end = LocalDateTime.MIN;
-        for (Subtask subtask: subtaskForEpic.values()) {
-            if (end.isBefore(subtask.getEndTime())) {
-                end = subtask.getEndTime();
+        endTime = LocalDateTime.MIN;
+        for (Subtask subtask : subtaskForEpic.values()) {
+            if (subtask.getEndTime() != null) {
+                if (endTime.isBefore(subtask.getEndTime())) {
+                    endTime = subtask.getEndTime();
+                }
             }
         }
-        return end;
+        return endTime;
+    }
+
+    public void setDuration(int duration) {
+        super.setDuration(duration);
+    }
+
+    @Override
+    public void setStartTime(LocalDateTime startTime) {
+        super.setStartTime(startTime);
+    }
+
+    @Override
+    public void setEndTime(LocalDateTime endTime) {
+        super.setEndTime(endTime);
     }
 
     @Override
     public TaskType getTaskType() {
-        return taskType;
+        return TaskType.Epic;
     }
 
     public void setSubtaskForEpic(Integer id, Subtask subtask) {
@@ -64,6 +79,7 @@ public class Epic extends Task {
 
     public Epic(String name, String description, TaskStatus status) {
         super(name, description, status);
+        taskType = TaskType.Epic;
     }
 
     @Override
@@ -74,6 +90,10 @@ public class Epic extends Task {
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status='" + status + '\'' +
+                ", epicType='" + taskType + '\'' +
+                ", duration='" + duration + '\'' +
+                ", startTime='" + startTime + '\'' +
+                ", endTime='" + endTime + '\'' +
                 '}';
     }
 }

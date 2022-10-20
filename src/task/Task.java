@@ -10,23 +10,24 @@ public class Task {
     protected TaskStatus status;
     protected Duration duration;
     protected LocalDateTime startTime;
-    protected LocalDateTime endTime = getEndTime();
+    protected LocalDateTime endTime;
 
-    private TaskType taskType = TaskType.Task;
+    protected TaskType taskType;
 
     public LocalDateTime getEndTime() {
         if (duration != null && startTime != null) {
-            return startTime.plus(duration);
-        } else {
-            System.out.println("Сначала добавьте продолжительность задачи и дату начала задачи");
+            endTime = startTime.plus(duration);
         }
-        return null;
+        return endTime;
     }
 
     public Duration getDuration() {
         return duration;
     }
 
+    public void setDuration(int duration) {
+        this.duration = Duration.ofMinutes(duration);
+    }
     public void setDuration(Duration duration) {
         this.duration = duration;
     }
@@ -68,7 +69,7 @@ public class Task {
     }
 
     public TaskType getTaskType() {
-        return taskType;
+        return TaskType.Task;
     }
 
     public void setTaskType(TaskType taskType) {
@@ -87,6 +88,7 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.taskType = TaskType.Task;
     }
 
     @Override
@@ -96,6 +98,10 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status='" + status + '\'' +
+                ", taskType='" + taskType + '\'' +
+                ", duration='" + duration + '\'' +
+                ", startTime='" + startTime + '\'' +
+                ", endTime='" + endTime + '\'' +
                 '}';
     }
 }

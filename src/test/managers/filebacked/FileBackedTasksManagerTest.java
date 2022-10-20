@@ -18,8 +18,12 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
     void setUp() throws IOException {
         file = new File("src/dataTest.csv");
         new FileWriter(file);
-        manager = new FileBackedTasksManager(file);
-    }
+        manager = new FileBackedTasksManager(file); // Привет, подскажи, не понимаю почему возникает ошибка
+    }                                               // java: cannot find symbol
+                                                    // symbol:   class TaskManagerTest
+                                                    // location: package managers
+                                                    // если переименовать объект manager то ошибка уходит
+                                                    // повторяется, если несколько раз запустить одни и те же тесты
 
     @Test
     @DisplayName("Save test with empty list tasks")
@@ -42,9 +46,9 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
         manager.getListOfAllEpic();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             String line = bufferedReader.readLine();
-            assertEquals("id,type,name,status,description,epic", line);
+            assertEquals("id,type,name,status,duration,startTime,endTime,description,epic", line);
             line = bufferedReader.readLine();
-            assertEquals("1,Task,Купить хлеб,NEW,В магните", line);
+            assertEquals("1,Task,Купить хлеб,NEW,PT30M,2022-09-01T12:00,2022-09-01T12:30,В магните", line);
         } catch (IOException e) {
             throw new ManagerSaveException("Файл не найден", e);
         }

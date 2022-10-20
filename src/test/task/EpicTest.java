@@ -4,10 +4,14 @@ import managers.TaskManagerTest;
 import managers.inmemory.InMemoryTaskManager;
 import org.junit.jupiter.api.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.Month;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class EpicStatusTest extends TaskManagerTest<InMemoryTaskManager> {
+class EpicTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @BeforeEach
     void setUp() {
@@ -65,5 +69,28 @@ class EpicStatusTest extends TaskManagerTest<InMemoryTaskManager> {
         manager.changeStatusEpic(manager.getEpicById(1));
 
         assertEquals(TaskStatus.IN_PROGRESS, manager.getEpicById(1).getStatus());
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Check Duration and Start/End time")
+    void epicCheckDurationAndStartEndTime() {
+        Subtask subtask = new Subtask("Покупка сахара", "1кг", TaskStatus.DONE, 1);
+        subtask.setStartTime(LocalDateTime.of(2021, Month.OCTOBER,24,11,0));
+        subtask.setDuration(30);
+        manager.createSubtask(subtask);
+        subtask = new Subtask("Покупка молока", "1л", TaskStatus.IN_PROGRESS, 1);
+        subtask.setStartTime(LocalDateTime.of(2022, Month.DECEMBER,30,15,0));
+        subtask.setDuration(60);
+        manager.createSubtask(subtask);
+
+        assertAll(
+                () -> assertEquals(Duration.parse("PT1H30M") ,
+                        manager.getEpicById(1).getDuration()),
+                () -> assertEquals(LocalDateTime.parse("2021-10-24T11:00") ,
+                        manager.getEpicById(1).getStartTime()),
+                () -> assertEquals(LocalDateTime.parse("2022-12-30T16:00"),
+                        manager.getEpicById(1).getEndTime())
+        );
     }
 }

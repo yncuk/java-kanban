@@ -4,20 +4,19 @@ public class Subtask extends Task {
 
     private final int idSubtaskForEpic;
 
-    private final TaskType taskType = TaskType.Subtask;
-
     public int getIdSubtaskForEpic() {
         return idSubtaskForEpic;
     }
 
     @Override
     public TaskType getTaskType() {
-        return taskType;
+        return TaskType.Subtask;
     }
 
     public Subtask(String name, String description, TaskStatus status, int idSubtaskForEpic) {
         super(name, description, status);
         this.idSubtaskForEpic = idSubtaskForEpic;
+        taskType = TaskType.Subtask;
     }
 
     @Override
@@ -28,6 +27,10 @@ public class Subtask extends Task {
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status='" + status + '\'' +
+                ", subtaskType='" + taskType + '\'' +
+                ", duration='" + duration + '\'' +
+                ", startTime='" + startTime + '\'' +
+                ", endTime='" + endTime + '\'' +
                 '}';
     }
 }

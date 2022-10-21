@@ -21,18 +21,24 @@ class InMemoryHistoryManagerTest extends HistoryManagerTest<InMemoryHistoryManag
     @Test
     @DisplayName("Add tasks in history")
     void addTest() {
+        // given (BeforeEach)
+        // when
         assertEquals(0, historyManager.customLinkedList.getTasks().size());
         historyManager.customLinkedList.linkLast(new Task("Купить хлеб", "В магните", TaskStatus.NEW));
+        // then
         assertEquals(1, historyManager.customLinkedList.getTasks().size());
     }
 
     @Test
     @DisplayName("Add tasks in history with duplicate")
     void addTestWithDuplicate() {
+        // given (BeforeEach)
+        // when
         assertEquals(0, historyManager.customLinkedList.getTasks().size());
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         historyManager.customLinkedList.linkLast(task);
         assertEquals(1, historyManager.customLinkedList.getTasks().size());
+        // then
         historyManager.customLinkedList.linkLast(task);
         assertEquals(1, historyManager.customLinkedList.getTasks().size());
     }
@@ -40,7 +46,10 @@ class InMemoryHistoryManagerTest extends HistoryManagerTest<InMemoryHistoryManag
     @Test
     @DisplayName("Get history")
     void getHistoryTest() {
+        // given (BeforeEach)
+        // when
         historyManager.customLinkedList.linkLast(new Task("Купить хлеб", "В магните", TaskStatus.NEW));
+        // then
         assertEquals(1, historyManager.getHistory().size());
     }
 
@@ -53,17 +62,21 @@ class InMemoryHistoryManagerTest extends HistoryManagerTest<InMemoryHistoryManag
     @Test
     @DisplayName("Remove tasks from history")
     void removeTest() {
+        // given (BeforeEach)
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         task.setId(1);
+        // when
         historyManager.customLinkedList.linkLast(task);
         assertEquals(1, historyManager.getHistory().size());
         historyManager.remove(1);
+        // then
         assertEquals(0, historyManager.getHistory().size());
     }
 
     @Test
     @DisplayName("Remove tasks from history from different positions")
     void removeTestFromDifferentPositions() {
+        // given (BeforeEach)
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         Task task2 = new Task("Купить хлеб1", "В магните1", TaskStatus.DONE);
         Task task3 = new Task("Купить хлеб2", "В магните2", TaskStatus.DONE);
@@ -72,12 +85,13 @@ class InMemoryHistoryManagerTest extends HistoryManagerTest<InMemoryHistoryManag
         task2.setId(2);
         task3.setId(3);
         task4.setId(4);
+        // when
         historyManager.customLinkedList.linkLast(task);
         historyManager.customLinkedList.linkLast(task2);
         historyManager.customLinkedList.linkLast(task3);
         historyManager.customLinkedList.linkLast(task4);
         List<Task> taskList = historyManager.customLinkedList.getTasks();
-
+        // then
         assertEquals(4, taskList.size());
         historyManager.remove(1);
         taskList = historyManager.customLinkedList.getTasks();
@@ -101,7 +115,10 @@ class InMemoryHistoryManagerTest extends HistoryManagerTest<InMemoryHistoryManag
     @Test
     @DisplayName("Remove tasks from empty history")
     void removeTestWhenHistoryIsEmpty() {
+        // given (BeforeEach)
+        // when
         historyManager.remove(1);
+        // then
         assertEquals(0, historyManager.getHistory().size());
     }
 }

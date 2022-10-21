@@ -15,6 +15,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     protected HistoryManager historyManager = Managers.getDefaultHistory();
 
+    protected Set<Task> prioritizedTasks = createPrioritizedTasks();
+
     @Override
     public HashMap<Integer, Task> getListOfAllTasks() {
         return taskHashMap;
@@ -95,13 +97,13 @@ public class InMemoryTaskManager implements TaskManager {
         if (checkDuplicateTimeTasks(task)) {
             return task;
         }
-        if (!taskHashMap.containsValue(task)) {
-            task.setId(id);
+        if (!taskHashMap.containsKey(task.getId())) { // а здесь получается проверка через переопределенные equals/hashcode
+            task.setId(id);                           // не нужна, так как мы проверяем выше по времени старта
             id++;
             taskHashMap.put(task.getId(), task);
             task.getEndTime();
-
-        } else System.out.println("Такая задача уже есть");
+            prioritizedTasks.add(task);
+        } else System.out.println("Задача с таким ID уже есть, обновите ее");
         return task;
     }
 
@@ -110,7 +112,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (checkDuplicateTimeTasks(subtask)) {
             return subtask;
         }
-        if (!subtaskHashMap.containsValue(subtask) && epicHashMap.containsKey(subtask.getIdSubtaskForEpic())) {
+        if (!subtaskHashMap.containsKey(subtask.getId()) && epicHashMap.containsKey(subtask.getIdSubtaskForEpic())) {
             subtask.setId(id);
             id++;
             subtaskHashMap.put(subtask.getId(), subtask);
@@ -120,18 +122,19 @@ public class InMemoryTaskManager implements TaskManager {
             epicHashMap.get(subtask.getIdSubtaskForEpic()).getDuration();
             epicHashMap.get(subtask.getIdSubtaskForEpic()).getStartTime();
             epicHashMap.get(subtask.getIdSubtaskForEpic()).getEndTime();
-        } else System.out.println("Такая подзадача уже есть или указан неправильный ID эпика");
+            prioritizedTasks.add(subtask);
+        } else System.out.println("Подзадача с таким ID уже есть, обновите ее или указан неправильный ID эпика");
         return subtask;
     }
 
     @Override
     public Epic createEpic(Epic epic) {
-        if (!epicHashMap.containsValue(epic)) {
+        if (!epicHashMap.containsKey(epic.getId())) {
             epic.setId(id);
             id++;
             changeStatusEpic(epic);
             epicHashMap.put(epic.getId(), epic);
-        } else System.out.println("Такой эпик уже есть");
+        } else System.out.println("Эпик с таким ID уже есть");
         return epic;
     }
 
@@ -140,6 +143,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (taskHashMap.containsKey(task.getId()) && !checkDuplicateTimeTasks(task)) {
             taskHashMap.put(task.getId(), task);
             task.getEndTime();
+            prioritizedTasks.add(task);
         } else System.out.println("Задачи с таким ID нет, добавьте ее как новую");
     }
 
@@ -250,17 +254,31 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    public Set<Task> getPrioritizedTasks() {
-        Comparator<Task> comparator = Comparator.comparing(Task::getStartTime); // подскажи, как быть, если время начала
-        Set<Task> prioritizedTasks = new TreeSet<>(comparator);                 // не задано, как в таком случае
-        prioritizedTasks.addAll(taskHashMap.values());                          // Nullpointer обработь ? чтобы еще и
-        prioritizedTasks.addAll(subtaskHashMap.values());                       // в конец списка добавляло
+    public Set<Task> createPrioritizedTasks() {
+        // Comparator<Task> comparator = Comparator.comparing(Task::getStartTime,
+        //        Comparator.nullsLast(Comparator.naturalOrder())); // спасибо
+        Comparator<Task> comparator = (t1, t2) -> {
+            if (t1.getStartTime() != null && t2.getStartTime() != null) {
+                return t1.getStartTime().compareTo(t2.getStartTime());
+            } else if (t1.getStartTime() == null) {
+                return 1;
+            } else if (t2.getStartTime() == null) {
+                return -1;
+            }
+            return t1.getId() - t2.getId(); // по заданию, чтобы учитывать, что возможны варианты когда startTime = null
+        };                                  // и если их несколько, чтобы в Set не потерять, добавил сравнение по ID
+        return new TreeSet<>(comparator);   // сверху решение конечно красивее)
+    }
 
+    public Set<Task> getPrioritizedTasks() {
         return prioritizedTasks;
     }
 
     private boolean checkDuplicateTimeTasks(Task task) {
-        for (Task taskSort: getPrioritizedTasks()) {
+        for (Task taskSort : prioritizedTasks) {
+            if (taskSort.getStartTime() == null) {
+                return false;
+            }
             if (task.getStartTime() != null && task.getStartTime().isEqual(taskSort.getStartTime())) {
                 System.out.println("Задача с таким временем старта уже есть");
                 return true;

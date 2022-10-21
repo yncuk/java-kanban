@@ -19,12 +19,18 @@ public class Main {
 
         //TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
-        task.setStartTime(LocalDateTime.of(2022, Month.SEPTEMBER,1,12,0));
+        //task.setStartTime(LocalDateTime.of(2022, Month.SEPTEMBER,1,12,0));
         task.setDuration(30);
         manager.createTask(task);
 
+        Task taskCopy = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
+        taskCopy.setStartTime(LocalDateTime.of(2025, Month.SEPTEMBER,1,12,0));
+        taskCopy.setDuration(30);
+        taskCopy.setId(1);
+        manager.createTask(taskCopy);
+
         Task task1 = new Task("Купить воду", "В пятерочке", TaskStatus.DONE);
-        task1.setStartTime(LocalDateTime.of(2020, Month.JULY,7,16,0));
+        //task1.setStartTime(LocalDateTime.of(2020, Month.JULY,7,16,0));
         task1.setDuration(90);
         manager.createTask(task1);
 
@@ -90,10 +96,6 @@ public class Main {
         System.out.println(manager);
         System.out.println(manager.getHistory());
 
-        System.out.println("_______________________________");
-        for (Task taskSort: manager.getPrioritizedTasks()) {
-            System.out.println(taskSort.getStartTime());
-        }
         //System.out.println(manager.getPrioritizedTasks());
         System.out.println("_______________________________");
         Task taskDuplicate = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
@@ -101,6 +103,10 @@ public class Main {
         taskDuplicate.setDuration(30);
         manager.createTask(taskDuplicate);
 
+        System.out.println("_______________________________");
+        for (Task taskSort: manager.getPrioritizedTasks()) {
+            System.out.println(taskSort.getStartTime());
+        }
 
         //manager.deleteEpicById(3);
         //manager.deleteSubtaskById(5);

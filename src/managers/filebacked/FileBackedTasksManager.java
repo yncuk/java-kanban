@@ -16,7 +16,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private void save() throws ManagerSaveException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
-            bufferedWriter.write("id,type,name,status,duration,startTime,endTime,description,epic");
+            bufferedWriter.write(ToCsvConverter.toCsvHeader());
             bufferedWriter.newLine();
             for (Task task : taskHashMap.values()) {
                 bufferedWriter.write(ToCsvConverter.toCsvString(task));

@@ -2,6 +2,7 @@ package task;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class Task {
     protected String name;
@@ -14,7 +15,7 @@ public class Task {
 
     protected TaskType taskType;
 
-    public LocalDateTime getEndTime() {
+    public LocalDateTime getEndTime() { // немного поменял теперь нет в create и update, но оставил сохранение в поле
         if (duration != null && startTime != null) {
             endTime = startTime.plus(duration);
         }
@@ -27,9 +28,11 @@ public class Task {
 
     public void setDuration(int duration) {
         this.duration = Duration.ofMinutes(duration);
+        getEndTime();
     }
     public void setDuration(Duration duration) {
         this.duration = duration;
+        getEndTime();
     }
 
     public LocalDateTime getStartTime() {
@@ -38,6 +41,7 @@ public class Task {
 
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
+        getEndTime();
     }
 
     public void setEndTime(LocalDateTime endTime) {
@@ -89,6 +93,24 @@ public class Task {
         this.description = description;
         this.status = status;
         this.taskType = TaskType.Task;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return id == task.id && Objects.equals(name, task.name) && Objects.equals(description, task.description) &&
+                status == task.status && Objects.equals(duration, task.duration) &&
+                Objects.equals(startTime, task.startTime) && Objects.equals(endTime, task.endTime) &&
+                taskType == task.taskType;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(name, description, id, status, duration, startTime, endTime, taskType);
+        result = 31 * result + result;
+        return result;
     }
 
     @Override

@@ -94,36 +94,35 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task createTask(Task task) {
-        if (checkDuplicateTimeTasks(task)) {
-            return task;
-        }
-        if (!taskHashMap.containsKey(task.getId())) { // а здесь получается проверка через переопределенные equals/hashcode
-            task.setId(id);                           // не нужна, так как мы проверяем выше по времени старта
+        if (!taskHashMap.containsKey(task.getId()) && checkDuplicateTimeTasks(task)) {
+            task.setId(id);
             id++;
             taskHashMap.put(task.getId(), task);
-            task.getEndTime();
             prioritizedTasks.add(task);
-        } else System.out.println("Задача с таким ID уже есть, обновите ее");
+        } else if (taskHashMap.containsKey(task.getId())) {
+            System.out.println("Задача с таким ID уже есть, обновите ее");
+        }
         return task;
     }
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
-        if (checkDuplicateTimeTasks(subtask)) {
-            return subtask;
-        }
-        if (!subtaskHashMap.containsKey(subtask.getId()) && epicHashMap.containsKey(subtask.getIdSubtaskForEpic())) {
+        if (!subtaskHashMap.containsKey(subtask.getId()) && epicHashMap.containsKey(subtask.getIdSubtaskForEpic()) &&
+                checkDuplicateTimeTasks(subtask)) {
             subtask.setId(id);
             id++;
             subtaskHashMap.put(subtask.getId(), subtask);
             epicHashMap.get(subtask.getIdSubtaskForEpic()).setSubtaskForEpic(subtask.getId(), subtask);
             changeStatusEpic(epicHashMap.get(subtask.getIdSubtaskForEpic()));
-            subtask.getEndTime();
             epicHashMap.get(subtask.getIdSubtaskForEpic()).getDuration();
             epicHashMap.get(subtask.getIdSubtaskForEpic()).getStartTime();
             epicHashMap.get(subtask.getIdSubtaskForEpic()).getEndTime();
             prioritizedTasks.add(subtask);
-        } else System.out.println("Подзадача с таким ID уже есть, обновите ее или указан неправильный ID эпика");
+        } else if (subtaskHashMap.containsKey(subtask.getId())) {
+            System.out.println("Подзадача с таким ID уже есть, обновите ее");
+        } else if (!epicHashMap.containsKey(subtask.getIdSubtaskForEpic())) {
+            System.out.println("Указан неправильный ID эпика");
+        }
         return subtask;
     }
 
@@ -140,11 +139,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (taskHashMap.containsKey(task.getId()) && !checkDuplicateTimeTasks(task)) {
+        if (taskHashMap.containsKey(task.getId()) && checkDuplicateTimeTasks(task)) {
+            prioritizedTasks.remove(taskHashMap.get(task.getId()));
             taskHashMap.put(task.getId(), task);
-            task.getEndTime();
             prioritizedTasks.add(task);
-        } else System.out.println("Задачи с таким ID нет, добавьте ее как новую");
+        } else if (!taskHashMap.containsKey(task.getId())) {
+            System.out.println("Задачи с таким ID нет, добавьте ее как новую");
+        }
     }
 
     @Override
@@ -152,30 +153,35 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtaskHashMap.containsKey(subtask.getId()) &&
                 epicHashMap.containsKey(subtask.getIdSubtaskForEpic()) &&
                 subtaskHashMap.get(subtask.getId()).getIdSubtaskForEpic() == subtask.getIdSubtaskForEpic() &&
-                !checkDuplicateTimeTasks(subtask)) {
+                checkDuplicateTimeTasks(subtask)) {
 
             Epic epic = epicHashMap.get(subtask.getIdSubtaskForEpic());
+            prioritizedTasks.remove(subtaskHashMap.get(subtask.getId()));
             subtaskHashMap.put(subtask.getId(), subtask);
+            prioritizedTasks.add(subtask);
             changeStatusEpic(epic);
             epic.setSubtaskForEpic(subtask.getId(), subtask);
             epic.getDuration();
             epic.getStartTime();
-            epic.getEndTime();
         } else if (subtaskHashMap.containsKey(subtask.getId()) &&
                 epicHashMap.containsKey(subtask.getIdSubtaskForEpic()) &&
                 subtaskHashMap.get(subtask.getId()).getIdSubtaskForEpic() != subtask.getIdSubtaskForEpic() &&
-                !checkDuplicateTimeTasks(subtask)) {
+                checkDuplicateTimeTasks(subtask)) {
 
+            prioritizedTasks.remove(subtaskHashMap.get(subtask.getId()));
             deleteSubtaskById(subtask.getId());
             subtaskHashMap.put(subtask.getId(), subtask);
+            prioritizedTasks.add(subtask);
             Epic epic = epicHashMap.get(subtask.getIdSubtaskForEpic());
             epic.setSubtaskForEpic(subtask.getId(), subtask);
             changeStatusEpic(epic);
             epic.getDuration();
             epic.getStartTime();
-            epic.getEndTime();
-        } else System.out.println("Подзадачи с таким ID нет, добавьте ее как новую или неверно указан ID эпика " +
-                "в новой подзадаче");
+        } else if (!subtaskHashMap.containsKey(subtask.getId())) {
+            System.out.println("Подзадачи с таким ID нет, добавьте ее как новую");
+        } else if (!epicHashMap.containsKey(subtask.getIdSubtaskForEpic())) {
+            System.out.println("Неверно указан ID эпика в новой подзадаче");
+        }
     }
 
     @Override
@@ -254,20 +260,11 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    public Set<Task> createPrioritizedTasks() {
-        // Comparator<Task> comparator = Comparator.comparing(Task::getStartTime,
-        //        Comparator.nullsLast(Comparator.naturalOrder())); // спасибо
-        Comparator<Task> comparator = (t1, t2) -> {
-            if (t1.getStartTime() != null && t2.getStartTime() != null) {
-                return t1.getStartTime().compareTo(t2.getStartTime());
-            } else if (t1.getStartTime() == null) {
-                return 1;
-            } else if (t2.getStartTime() == null) {
-                return -1;
-            }
-            return t1.getId() - t2.getId(); // по заданию, чтобы учитывать, что возможны варианты когда startTime = null
-        };                                  // и если их несколько, чтобы в Set не потерять, добавил сравнение по ID
-        return new TreeSet<>(comparator);   // сверху решение конечно красивее)
+    private Set<Task> createPrioritizedTasks() {
+         Comparator<Task> comparator = Comparator
+                 .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                 .thenComparing(Task::getId);
+        return new TreeSet<>(comparator);
     }
 
     public Set<Task> getPrioritizedTasks() {
@@ -275,16 +272,21 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean checkDuplicateTimeTasks(Task task) {
+        if (task.getStartTime() == null) {
+            return true;
+        }
         for (Task taskSort : prioritizedTasks) {
             if (taskSort.getStartTime() == null) {
-                return false;
-            }
-            if (task.getStartTime() != null && task.getStartTime().isEqual(taskSort.getStartTime())) {
-                System.out.println("Задача с таким временем старта уже есть");
                 return true;
             }
+            if (task.getId() != taskSort.getId() && (task.getStartTime().isAfter(taskSort.getStartTime()) ||
+                    task.getStartTime().equals(taskSort.getStartTime())) &&
+                    task.getStartTime().isBefore(taskSort.getEndTime())) {
+                System.out.println("Задача пересекается с временем другой задачи");
+                return false;
+            }
         }
-        return false;
+        return true;
     }
 
     @Override

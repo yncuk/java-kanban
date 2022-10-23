@@ -11,15 +11,15 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        TaskManager manager = Managers.getDefault();
+        //TaskManager manager = Managers.getDefault();
 
         //TaskManager manager = Managers.getFileBakedTaskManagerFromFile(new File("src/data.csv"));
         //System.out.println(manager);
         //System.out.println(manager.getHistory());
 
-        //TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
+        TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
-        //task.setStartTime(LocalDateTime.of(2022, Month.SEPTEMBER,1,12,0));
+        task.setStartTime(LocalDateTime.of(2019, Month.SEPTEMBER,1,12,0));
         task.setDuration(30);
         manager.createTask(task);
 
@@ -27,10 +27,10 @@ public class Main {
         taskCopy.setStartTime(LocalDateTime.of(2025, Month.SEPTEMBER,1,12,0));
         taskCopy.setDuration(30);
         taskCopy.setId(1);
-        manager.createTask(taskCopy);
+        //manager.updateTask(taskCopy);
 
         Task task1 = new Task("Купить воду", "В пятерочке", TaskStatus.DONE);
-        //task1.setStartTime(LocalDateTime.of(2020, Month.JULY,7,16,0));
+        task1.setStartTime(LocalDateTime.of(2020, Month.JULY,7,16,0));
         task1.setDuration(90);
         manager.createTask(task1);
 
@@ -59,8 +59,11 @@ public class Main {
 
         System.out.println(manager);
         System.out.println("Здесь замена");
-        subtask2.setStatus(TaskStatus.NEW);
-        manager.updateSubtask(subtask2);
+        Subtask subtask3 = new Subtask("Покупка одежды", "Брюки", TaskStatus.DONE, 6);
+        subtask3.setId(7);
+        subtask3.setStartTime(LocalDateTime.of(2030, Month.DECEMBER,21,21,0));
+        subtask3.setStatus(TaskStatus.NEW);
+        //manager.updateSubtask(subtask3);
 
         System.out.println(manager);
 
@@ -99,7 +102,7 @@ public class Main {
         //System.out.println(manager.getPrioritizedTasks());
         System.out.println("_______________________________");
         Task taskDuplicate = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
-        taskDuplicate.setStartTime(LocalDateTime.of(2020, Month.JULY,7,16,0));
+        taskDuplicate.setStartTime(LocalDateTime.of(2020, Month.JULY,7,17,0));
         taskDuplicate.setDuration(30);
         manager.createTask(taskDuplicate);
 

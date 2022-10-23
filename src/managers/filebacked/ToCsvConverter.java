@@ -9,6 +9,10 @@ import java.util.stream.Collectors;
 
 public class ToCsvConverter {
 
+    static public String toCsvHeader() {
+        return "id,type,name,status,duration,startTime,endTime,description,epic";
+    }
+
     static public String toCsvString(Task task) {
         return task.getId() + "," + task.getTaskType() + "," + task.getName() + "," + task.getStatus() + "," +
                 task.getDuration() + "," + task.getStartTime() + "," + task.getEndTime() + "," + task.getDescription();

@@ -36,10 +36,12 @@ public class Epic extends Task {
 
     public LocalDateTime getEndTime() {
         endTime = LocalDateTime.MIN;
-        for (Subtask subtask : subtaskForEpic.values()) {
-            if (subtask.getEndTime() != null) {
-                if (endTime.isBefore(subtask.getEndTime())) {
-                    endTime = subtask.getEndTime();
+        if (subtaskForEpic != null) {
+            for (Subtask subtask : subtaskForEpic.values()) {
+                if (subtask.getEndTime() != null) {
+                    if (endTime.isBefore(subtask.getEndTime())) {
+                        endTime = subtask.getEndTime();
+                    }
                 }
             }
         }

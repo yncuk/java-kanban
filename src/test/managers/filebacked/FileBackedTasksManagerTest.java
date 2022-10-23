@@ -18,9 +18,9 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
     void setUp() throws IOException {
         file = new File("src/dataTest.csv");
         new FileWriter(file);
-        manager = new FileBackedTasksManager(file); // С любым названием, возможно это происходит из-за того, что
-    }                                               // создаю новые тесты, потом запускаю все и ругается
-                                                    // (не так собирается мб), если запускать готовый набор тестов то все ок
+        manager = new FileBackedTasksManager(file);
+    }
+
     @Test
     @DisplayName("Save test with empty list tasks")
     void saveTestWithEmptyListTasks() {

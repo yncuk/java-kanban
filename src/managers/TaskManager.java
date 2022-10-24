@@ -4,7 +4,7 @@ import task.*;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.TreeSet;
 
 public interface TaskManager {
 
@@ -50,5 +50,5 @@ public interface TaskManager {
 
     List<Task> getHistory();
 
-    Set<Task> getPrioritizedTasks();
+    TreeSet<Task> getPrioritizedTasks();
 }

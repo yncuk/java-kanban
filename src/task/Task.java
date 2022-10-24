@@ -15,7 +15,7 @@ public class Task {
 
     protected TaskType taskType;
 
-    public LocalDateTime getEndTime() { // немного поменял теперь нет в create и update, но оставил сохранение в поле
+    public LocalDateTime getEndTime() {
         if (duration != null && startTime != null) {
             endTime = startTime.plus(duration);
         }
@@ -30,6 +30,7 @@ public class Task {
         this.duration = Duration.ofMinutes(duration);
         getEndTime();
     }
+
     public void setDuration(Duration duration) {
         this.duration = duration;
         getEndTime();

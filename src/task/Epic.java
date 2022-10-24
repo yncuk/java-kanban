@@ -14,7 +14,7 @@ public class Epic extends Task {
 
     public Duration getDuration() {
         duration = Duration.ofMinutes(0);
-        for (Subtask subtask: subtaskForEpic.values()) {
+        for (Subtask subtask : subtaskForEpic.values()) {
             if (subtask.getDuration() != null) {
                 duration = duration.plus(subtask.getDuration());
             }
@@ -24,7 +24,7 @@ public class Epic extends Task {
 
     public LocalDateTime getStartTime() {
         startTime = LocalDateTime.MAX;
-        for (Subtask subtask: subtaskForEpic.values()) {
+        for (Subtask subtask : subtaskForEpic.values()) {
             if (subtask.getStartTime() != null) {
                 if (startTime.isAfter(subtask.getStartTime())) {
                     startTime = subtask.getStartTime();

@@ -1,5 +1,7 @@
-import managers.factory.Managers;
+import http.HttpTaskServer;
+import http.kv.server.KVServer;
 import managers.TaskManager;
+import managers.factory.Managers;
 import task.*;
 
 import java.io.File;
@@ -9,15 +11,19 @@ import java.time.Month;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException { //выполняется частично, почему то Stackoverflow бросает
 
-        //TaskManager manager = Managers.getDefault();
+        KVServer server = new KVServer();
+        server.start();
 
+        HttpTaskServer server1 = new HttpTaskServer();
+        server1.start();
+        TaskManager manager = server1.manager = Managers.getDefault("http://localhost:8078/");
         //TaskManager manager = Managers.getFileBakedTaskManagerFromFile(new File("src/data.csv"));
         //System.out.println(manager);
         //System.out.println(manager.getHistory());
 
-        TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
+        //TaskManager manager = Managers.getFileBackedTaskManager(new File("src/data.csv"));
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         task.setStartTime(LocalDateTime.of(2019, Month.SEPTEMBER, 1, 12, 0));
         task.setDuration(30);
@@ -64,10 +70,6 @@ public class Main {
         subtask3.setStartTime(LocalDateTime.of(2030, Month.DECEMBER, 21, 21, 0));
         subtask3.setDuration(55);
         manager.updateSubtask(subtask3);
-
-        //Subtask subtaskNew = new Subtask("Покупка сахара", "2кг", TaskStatus.DONE, 3);
-        //subtaskNew.setId(5);
-        //manager.updateSubtask(subtaskNew);
 
         //Проверка сабтаска в истории перед удалением
         manager.getSubtaskById(5);

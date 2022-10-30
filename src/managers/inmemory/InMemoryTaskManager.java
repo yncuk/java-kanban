@@ -148,6 +148,7 @@ public class InMemoryTaskManager implements TaskManager {
                 taskHashMap.put(task.getId(), task);
                 prioritizedTasks.add(task);
             } else {
+                System.out.println("Задача не обновлена");
                 prioritizedTasks.add(taskHashMap.get(task.getId()));
             }
         } else {
@@ -171,6 +172,7 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.getDuration();
                 epic.getStartTime();
             } else {
+                System.out.println("Подзадача не обновлена");
                 prioritizedTasks.add(taskHashMap.get(subtask.getId()));
             }
         } else if (subtaskHashMap.containsKey(subtask.getId()) &&
@@ -188,6 +190,7 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.getDuration();
                 epic.getStartTime();
             } else {
+                System.out.println("Подзадача не обновлена");
                 prioritizedTasks.add(taskHashMap.get(subtask.getId()));
             }
         } else if (!subtaskHashMap.containsKey(subtask.getId())) {
@@ -294,19 +297,17 @@ public class InMemoryTaskManager implements TaskManager {
             if (taskSort.getStartTime() == null) {
                 return true;
             }
-            if (((task.getStartTime().equals(taskSort.getStartTime()) ||
-                    task.getStartTime().isAfter(taskSort.getStartTime())) &&
-                    (task.getStartTime().isBefore(taskSort.getEndTime()) ||
-                            task.getEndTime().equals(taskSort.getEndTime()))) ||
-                    (task.getEndTime().isAfter(taskSort.getStartTime()) &&
-                            (task.getEndTime().isBefore(taskSort.getEndTime()) ||
-                                    task.getEndTime().equals(taskSort.getEndTime()))) ||
-                    (task.getStartTime().isBefore(taskSort.getStartTime()) &&
-                            task.getEndTime().isAfter(taskSort.getEndTime()))) {
+            if (checkFirstLessOrEqualSecond(task, taskSort) &&
+                    checkFirstLessOrEqualSecond(taskSort, task)) { // все гениальное просто, надо будет алгоритмы подтянуть
                 System.out.println("Задача пересекается с временем другой задачи");
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean checkFirstLessOrEqualSecond(Task first, Task second) {
+        return first.getStartTime().isBefore(second.getEndTime()) ||
+                first.getStartTime().equals(second.getEndTime());
     }
 }

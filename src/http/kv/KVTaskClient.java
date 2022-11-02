@@ -10,8 +10,8 @@ public class KVTaskClient {
     private final String URL;
     private final String API_TOKEN;
 
-    public KVTaskClient() {
-        URL = "http://localhost:8078/";
+    public KVTaskClient(String URL) {
+        this.URL = URL; //"http://localhost:8078/";
         API_TOKEN = register();
     }
 

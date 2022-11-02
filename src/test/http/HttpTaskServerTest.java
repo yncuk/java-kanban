@@ -1,17 +1,15 @@
 package http;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import http.kv.KVTaskClient;
 import http.kv.server.KVServer;
 import managers.TaskManagerTest;
+import managers.http.HttpTaskManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import task.Epic;
-import task.Subtask;
-import task.Task;
-import task.TaskStatus;
+import task.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,21 +22,20 @@ import java.time.Month;
 import static org.junit.jupiter.api.Assertions.*;
 
 class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    Gson gson = gsonBuilder.create();
-    HttpTaskServer httpTaskServer = new HttpTaskServer();
-    KVServer server = new KVServer();
+    Gson gson = new Gson();
+    HttpTaskServer httpTaskServer;
+    KVServer server;
+    KVTaskClient kvTaskClient;
     String URL = "http://localhost:8080";
 
-    HttpTaskServerTest() throws IOException {
-    }
-
-
     @BeforeEach
-    void setUp() {
-        httpTaskServer.start();
+    void setUp() throws IOException {
+        manager = new HttpTaskManager("http://localhost:8078/");
+        server = new KVServer();
+        httpTaskServer = new HttpTaskServer(manager);
         server.start();
-        manager = (HttpTaskManager) (httpTaskServer.manager = new HttpTaskManager("http://localhost:8078/"));
+        httpTaskServer.start();
+        kvTaskClient = new KVTaskClient("http://localhost:8078/");
     }
 
     @Test
@@ -52,9 +49,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, error);
+            int statusCode = send.statusCode();
+            assertEquals("{}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -63,7 +60,10 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
     @Test
     @DisplayName("Test GET tasks then list tasks no empty")
     void testGetTasksThenListTasksNoEmpty() {
-        initStandardBehavior();
+        Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
+        manager.createTask(task);
+        task = new Task("Купить воду", "В пятерочке", TaskStatus.DONE);
+        manager.createTask(task);
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -72,9 +72,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getListOfAllTasks()), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"1\":{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1," +
+                    "\"status\":\"NEW\",\"taskType\":\"Task\"},\"2\":{\"name\":\"Купить воду\"," +
+                    "\"description\":\"В пятерочке\",\"id\":2,\"status\":\"DONE\",\"taskType\":\"Task\"}}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -91,9 +93,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, error);
+            int statusCode = send.statusCode();
+            assertEquals("{}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -102,7 +104,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
     @Test
     @DisplayName("Test GET subtasks then list subtasks no empty")
     void testGetSubtasksThenListSubtasksNoEmpty() {
-        initStandardBehavior();
+        manager.createEpic(new Epic("Поход в магазин", "В макси", TaskStatus.NEW));
+        Subtask subtask = new Subtask("Покупка молока", "1л", TaskStatus.NEW, 1);
+        manager.createSubtask(subtask);
+        subtask = new Subtask("Покупка сахара", "1кг", TaskStatus.DONE, 1);
+        manager.createSubtask(subtask);
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -111,9 +117,12 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getListOfAllSubtasks()), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"2\":{\"idSubtaskForEpic\":1,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
+                    "\"id\":2,\"status\":\"NEW\",\"taskType\":\"Subtask\"},\"3\":{\"idSubtaskForEpic\":1," +
+                    "\"name\":\"Покупка сахара\",\"description\":\"1кг\",\"id\":3,\"status\":\"DONE\"," +
+                    "\"taskType\":\"Subtask\"}}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -130,9 +139,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, error);
+            int statusCode = send.statusCode();
+            assertEquals("{}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -141,7 +150,8 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
     @Test
     @DisplayName("Test GET epic then list epic no empty")
     void testGetEpicThenListEpicNoEmpty() {
-        initStandardBehavior();
+        manager.createEpic(new Epic("Поход в магазин", "В макси", TaskStatus.NEW));
+        manager.createEpic(new Epic("Поход в музей", "В центре", TaskStatus.NEW));
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -150,9 +160,12 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getListOfAllEpic()), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"1\":{\"subtaskForEpic\":{},\"name\":\"Поход в магазин\"," +
+                    "\"description\":\"В макси\",\"id\":1,\"status\":\"NEW\",\"taskType\":\"Epic\"}," +
+                    "\"2\":{\"subtaskForEpic\":{},\"name\":\"Поход в музей\",\"description\":\"В центре\"," +
+                    "\"id\":2,\"status\":\"NEW\",\"taskType\":\"Epic\"}}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -169,9 +182,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Задача не найдена", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -188,9 +201,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Задача не найдена", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -207,9 +220,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Подзадача не найдена", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -226,9 +239,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Эпик не найден", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -246,9 +259,13 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getTaskById(1)), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1,\"status\":\"NEW\"," +
+                    "\"duration\":{\"seconds\":1800,\"nanos\":0},\"startTime\":{\"date\":{\"year\":2022,\"month\":9," +
+                    "\"day\":1},\"time\":{\"hour\":12,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                    "\"endTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12,\"minute\":30," +
+                    "\"second\":0,\"nano\":0}},\"taskType\":\"Task\"}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -266,9 +283,14 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getSubtaskById(4)), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\",\"description\":\"1л\",\"id\":4," +
+                    "\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Subtask\"}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -286,9 +308,24 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getEpicById(3)), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"subtaskForEpic\":{\"4\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\"," +
+                    "\"description\":\"1л\",\"id\":4,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Subtask\"},\"5\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка сахара\"," +
+                    "\"description\":\"1кг\",\"id\":5,\"status\":\"DONE\",\"duration\":{\"seconds\":3600,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":12,\"day\":30},\"time\":{\"hour\":15," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
+                    "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Subtask\"}},\"name\":\"Поход в магазин\",\"description\":\"В макси\"," +
+                    "\"id\":3,\"status\":\"IN_PROGRESS\",\"duration\":{\"seconds\":5400,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
+                    "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Epic\"}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -306,9 +343,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -326,9 +363,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -346,9 +383,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -366,9 +403,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -386,9 +423,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Эпик не найден", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -406,9 +443,19 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getAllSubtaskByEpic(manager.getEpicById(3))), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("{\"4\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
+                    "\"id\":4,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Subtask\"},\"5\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка сахара\"," +
+                    "\"description\":\"1кг\",\"id\":5,\"status\":\"DONE\",\"duration\":{\"seconds\":3600,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":12,\"day\":30},\"time\":{\"hour\":15," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
+                    "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Subtask\"}}", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -425,9 +472,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, error);
+            int statusCode = send.statusCode();
+            assertEquals("[]", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -446,9 +493,14 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getHistory()), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("[{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1," +
+                    "\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":9," +
+                    "\"day\":1},\"time\":{\"hour\":12,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Task\"}]", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -465,9 +517,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, error);
+            int statusCode = send.statusCode();
+            assertEquals("[]", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -476,7 +528,15 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
     @Test
     @DisplayName("Test GET prioritized tasks then history is no empty")
     void testGetPrioritizedTasksThenHistoryIsNoEmpty() {
-        initStandardBehavior();
+        Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
+        task.setStartTime(LocalDateTime.of(2022, Month.SEPTEMBER,1,12,0));
+        task.setDuration(30);
+        manager.createTask(task);
+        manager.createEpic(new Epic("Поход в магазин", "В макси", TaskStatus.NEW));
+        Subtask subtask = new Subtask("Покупка молока", "1л", TaskStatus.NEW, 2);
+        subtask.setStartTime(LocalDateTime.of(2021, Month.OCTOBER,24,11,0));
+        subtask.setDuration(30);
+        manager.createSubtask(subtask);
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -485,9 +545,19 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
-            assertEquals(gson.toJson(manager.getPrioritizedTasks()), accept);
-            assertEquals(200, error);
+            int statusCode = send.statusCode();
+            assertEquals("[{\"idSubtaskForEpic\":2,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
+                    "\"id\":3,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Subtask\"},{\"name\":\"Купить хлеб\",\"description\":\"В магните\"," +
+                    "\"id\":1,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12," +
+                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":9," +
+                    "\"day\":1},\"time\":{\"hour\":12,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                    "\"taskType\":\"Task\"}]", accept);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -505,9 +575,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Not Found", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -517,8 +587,7 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
     @DisplayName("Test POST task")
     void testPostTask() {
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
-        task.setStartTime(LocalDateTime.of(2019, Month.SEPTEMBER, 1, 12, 0));
-        task.setDuration(30);
+        manager.createTask(task);
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -527,9 +596,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertEquals(task, TaskFromJson.taskFromJson(kvTaskClient.load("tasks"), 1));
             assertEquals("Задача создана", accept);
-            assertEquals(201, error);
+            assertEquals(201, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -541,8 +612,7 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
         Epic epic = new Epic("Поход в магазин", "В макси", TaskStatus.NEW);
         manager.createEpic(epic);
         Subtask subtask = new Subtask("Покупка молока", "1л", TaskStatus.NEW, 1);
-        subtask.setStartTime(LocalDateTime.of(2021, Month.OCTOBER, 24, 11, 0));
-        subtask.setDuration(30);
+        manager.createSubtask(subtask);
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -551,9 +621,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertEquals(subtask, TaskFromJson.subtaskFromJson(kvTaskClient.load("subtasks"), 2));
             assertEquals("Подзадача создана", accept);
-            assertEquals(201, error);
+            assertEquals(201, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -563,6 +635,7 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
     @DisplayName("Test POST epic")
     void testPostEpic() {
         Epic epic = new Epic("Поход в магазин", "В макси", TaskStatus.NEW);
+        manager.createEpic(epic);
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -571,9 +644,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertEquals(epic, TaskFromJson.epicFromJson(kvTaskClient.load("epic"), 1));
             assertEquals("Эпик создан", accept);
-            assertEquals(201, error);
+            assertEquals(201, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -586,14 +661,14 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task1/"))
+                    .uri(URI.create(URL + "/tasks/task/task"))
                     .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(manager.getTaskById(1))))
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Not Found", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -611,9 +686,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertEquals("{}", kvTaskClient.load("tasks"));
             assertEquals("Все задачи удалены", accept);
-            assertEquals(200, error);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -631,9 +708,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertEquals("{}", kvTaskClient.load("subtasks"));
             assertEquals("Все подзадачи удалены", accept);
-            assertEquals(200, error);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -651,9 +730,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertEquals("{}", kvTaskClient.load("epic"));
             assertEquals("Все эпики удалены", accept);
-            assertEquals(200, error);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -671,9 +752,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertNull(manager.getTaskById(1));
             assertEquals("Задача успешно удалена", accept);
-            assertEquals(200, error);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -691,9 +774,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertNull(manager.getSubtaskById(4));
             assertEquals("Подзадача успешно удалена", accept);
-            assertEquals(200, error);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -711,9 +796,11 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
+
+            assertNull(manager.getEpicById(3));
             assertEquals("Эпик успешно удален", accept);
-            assertEquals(200, error);
+            assertEquals(200, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -731,9 +818,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -751,9 +838,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -771,9 +858,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("", accept);
-            assertEquals(400, error);
+            assertEquals(400, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -790,9 +877,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Задача не найдена", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -809,9 +896,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Подадача не найдена", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -828,9 +915,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Эпик не найден", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -843,14 +930,14 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task1/"))
+                    .uri(URI.create(URL + "/tasks/task/task"))
                     .DELETE()
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Not Found", accept);
-            assertEquals(404, error);
+            assertEquals(404, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
@@ -869,9 +956,9 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
                     .build();
             HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             String accept = send.body();
-            int error = send.statusCode();
+            int statusCode = send.statusCode();
             assertEquals("Not Found", accept);
-            assertEquals(405, error);
+            assertEquals(405, statusCode);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }

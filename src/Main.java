@@ -15,10 +15,11 @@ public class Main {
 
         KVServer server = new KVServer();
         server.start();
+        TaskManager manager = Managers.getDefault("http://localhost:8078/");
 
-        HttpTaskServer server1 = new HttpTaskServer();
+        HttpTaskServer server1 = new HttpTaskServer(manager);
         server1.start();
-        TaskManager manager = server1.manager = Managers.getDefault("http://localhost:8078/");
+
         //TaskManager manager = Managers.getFileBakedTaskManagerFromFile(new File("src/data.csv"));
         //System.out.println(manager);
         //System.out.println(manager.getHistory());

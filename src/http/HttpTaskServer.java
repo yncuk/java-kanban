@@ -1,10 +1,11 @@
 package http;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import http.kv.server.KVServer;
 import managers.TaskManager;
+import managers.http.HttpTaskManager;
 import task.*;
 
 import java.io.IOException;
@@ -17,19 +18,16 @@ import java.nio.charset.StandardCharsets;
 public class HttpTaskServer {
     private static final int PORT = 8080;
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    Gson gson = gsonBuilder.create();
-    public TaskManager manager;
+    private final Gson gson = new Gson();
+    private final TaskManager manager; // = new HttpTaskManager("http://localhost:8078/");
     private final HttpServer httpTaskServer;
 
-    public HttpTaskServer() throws IOException {
-        httpTaskServer = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
-        httpTaskServer.createContext("/tasks", this::tasks);
-    }
+    /*public static void main(String[] args) throws IOException {
+        final KVServer kvServer = new KVServer();
+        new HttpTaskServer().start();
+        kvServer.start();
+    }*/
 
-    //public static void main(String[] args) throws IOException {
-    //    new HttpTaskServer().start();
-    //}
     public void start() {
         System.out.println("Запускаем сервер на порту " + PORT);
         System.out.println("Открой в браузере http://localhost:" + PORT + "/");
@@ -41,6 +39,17 @@ public class HttpTaskServer {
         httpTaskServer.stop(1);
     }
 
+    public HttpTaskServer(TaskManager manager) throws IOException {
+        this.manager = manager;
+        httpTaskServer = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
+        httpTaskServer.createContext("/tasks/task/", this::tasks);
+        httpTaskServer.createContext("/tasks/subtask/", this::subtasks);
+        httpTaskServer.createContext("/tasks/epic/", this::epic);
+        httpTaskServer.createContext("/tasks/subtask/epic/", this::subtasksEpic);
+        httpTaskServer.createContext("/tasks/history", this::history);
+        httpTaskServer.createContext("/tasks/", this::prioritizedTasks);
+    }
+
     private void tasks(HttpExchange h) throws IOException {
         String method = h.getRequestMethod();
         String path = h.getRequestURI().getPath();
@@ -49,25 +58,29 @@ public class HttpTaskServer {
         switch (method) {
             case "GET":
                 String response;
-                if (path.endsWith("/task/") && rawQuery == null) {
+                if (!path.equals("/tasks/task/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                if (rawQuery == null) {
+                    response = gson.toJson(manager.getListOfAllTasks());
                     if (manager.getListOfAllTasks().isEmpty()) {
                         System.out.println("Список задач пустой");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes(DEFAULT_CHARSET));
-                        }
-                        return;
+                    } else {
+                        System.out.println("Список задач успешно возвращен!");
                     }
-                    response = gson.toJson(manager.getListOfAllTasks());
-                    System.out.println("Список задач успешно возвращен!");
                     h.sendResponseHeaders(200, 0);
                     try (OutputStream os = h.getResponseBody()) {
                         os.write(response.getBytes(DEFAULT_CHARSET));
                     }
-                } else if (path.endsWith("/task/") && rawQuery != null) {
+                } else {
                     String id = getId(h);
                     if (id.isEmpty() || !isParsable(id)) {
-                        System.out.println("Не верно указан ID, указывается в пути числом: /task/?id={id}");
+                        System.out.println("Не верно указан ID, указывается в пути числом: /tasks/task/?id={id}");
                         h.sendResponseHeaders(400, 0);
                         try (OutputStream os = h.getResponseBody()) {
                             os.write("".getBytes());
@@ -87,210 +100,50 @@ public class HttpTaskServer {
                     try (OutputStream os = h.getResponseBody()) {
                         os.write(response.getBytes());
                     }
-                } else if (path.endsWith("/subtask/") && rawQuery == null) {
-                    if (manager.getListOfAllSubtasks().isEmpty()) {
-                        System.out.println("Список подзадач пустой");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes(DEFAULT_CHARSET));
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getListOfAllSubtasks());
-                    System.out.println("Список подзадач успешно возвращен!");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes(DEFAULT_CHARSET));
-                    }
-                } else if (path.endsWith("/subtask/") && rawQuery != null) {
-                    String id = getId(h);
-                    if (id.isEmpty() || !isParsable(id)) {
-                        System.out.println("Не верно указан ID, указывается в пути числом: /subtask/?id={id}");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes());
-                        }
-                        return;
-                    }
-                    if (manager.getSubtaskById(Integer.parseInt(id)) == null) {
-                        h.sendResponseHeaders(404, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("Подзадача не найдена".getBytes());
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getSubtaskById(Integer.parseInt(id)));
-                    System.out.println("Значение для ID " + id + " успешно возвращено!");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes());
-                    }
-                } else if (path.endsWith("/subtask/epic/") && rawQuery != null) {
-                    String id = getId(h);
-                    if (id.isEmpty() || !isParsable(id)) {
-                        System.out.println("Не верно указан ID, указывается в пути числом: /subtask/epic/?id={id}");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes());
-                        }
-                        return;
-                    }
-                    if (manager.getEpicById(Integer.parseInt(id)) == null) {
-                        h.sendResponseHeaders(404, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("Эпик не найден".getBytes());
-                        }
-                        return;
-                    }
-                    if (manager.getAllSubtaskByEpic(manager.getEpicById(Integer.parseInt(id))) == null) {
-                        h.sendResponseHeaders(404, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("Список подзадач для эпика пустой".getBytes());
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getAllSubtaskByEpic(manager.getEpicById(Integer.parseInt(id))));
-                    System.out.println("Значение для ID " + id + " успешно возвращено!");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes());
-                    }
-                } else if (path.endsWith("/epic/") && rawQuery == null) {
-                    if (manager.getListOfAllEpic().isEmpty()) {
-                        System.out.println("Список эпиков пустой");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes(DEFAULT_CHARSET));
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getListOfAllEpic());
-                    System.out.println("Список эпиков успешно возвращен!");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes(DEFAULT_CHARSET));
-                    }
-                } else if (path.endsWith("/epic/") && rawQuery != null) {
-                    String id = getId(h);
-                    if (id.isEmpty() || !isParsable(id)) {
-                        System.out.println("Не верно указан ID, указывается в пути числом: /epic/?id={id}");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes());
-                        }
-                        return;
-                    }
-                    if (manager.getEpicById(Integer.parseInt(id)) == null) {
-                        h.sendResponseHeaders(404, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("Эпик не найден".getBytes());
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getEpicById(Integer.parseInt(id)));
-                    System.out.println("Значение для ID " + id + " успешно возвращено!");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes());
-                    }
-                } else if (path.endsWith("/history")) {
-                    if (manager.getHistory().isEmpty()) {
-                        System.out.println("История пустая");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes(DEFAULT_CHARSET));
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getHistory());
-                    System.out.println("История успешно возвращена");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes(DEFAULT_CHARSET));
-                    }
-                } else if (path.endsWith("/tasks/")) {
-                    if (manager.getPrioritizedTasks().isEmpty()) {
-                        System.out.println("Список приоритизированных задач пустой");
-                        h.sendResponseHeaders(400, 0);
-                        try (OutputStream os = h.getResponseBody()) {
-                            os.write("".getBytes(DEFAULT_CHARSET));
-                        }
-                        return;
-                    }
-                    response = gson.toJson(manager.getPrioritizedTasks());
-                    System.out.println("Список приоритизированных задач успешно возвращен");
-                    h.sendResponseHeaders(200, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write(response.getBytes(DEFAULT_CHARSET));
-                    }
-                } else {
-                    System.out.println("Not Found. На этом пути: " + path);
-                    h.sendResponseHeaders(404, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
-                    }
                 }
                 break;
             case "POST":
-                if (path.endsWith("/task/")) {
-                    InputStream inputStream = h.getRequestBody();
-                    String jsonString = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
-                    Task task = gson.fromJson(jsonString, Task.class);
-                    if (manager.getTaskById(task.getId()) == null) {
-                        manager.createTask(task);
-                    } else {
-                        manager.updateTask(task);
-                    }
-                    h.sendResponseHeaders(201, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write("Задача создана".getBytes(DEFAULT_CHARSET));
-                    }
-                } else if (path.endsWith("/subtask/")) {
-                    InputStream inputStream = h.getRequestBody();
-                    String jsonString = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
-                    Subtask subtask = gson.fromJson(jsonString, Subtask.class);
-                    if (manager.getSubtaskById(subtask.getId()) == null) {
-                        manager.createSubtask(subtask);
-                    } else {
-                        manager.updateSubtask(subtask);
-                    }
-                    h.sendResponseHeaders(201, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write("Подзадача создана".getBytes(DEFAULT_CHARSET));
-                    }
-                } else if (path.endsWith("/epic/")) {
-                    InputStream inputStream = h.getRequestBody();
-                    String jsonString = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
-                    Epic epic = gson.fromJson(jsonString, Epic.class);
-                    if (manager.getEpicById(epic.getId()) == null) {
-                        manager.createEpic(epic);
-                    } else {
-                        manager.updateEpic(epic);
-                    }
-                    h.sendResponseHeaders(201, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write("Эпик создан".getBytes(DEFAULT_CHARSET));
-                    }
-                } else {
+                if (!path.equals("/tasks/task/")) {
                     System.out.println("Not Found. На этом пути: " + path);
                     h.sendResponseHeaders(404, 0);
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Not Found".getBytes(DEFAULT_CHARSET));
                     }
+                    return;
+                }
+                InputStream inputStream = h.getRequestBody();
+                String jsonString = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
+                Task task = gson.fromJson(jsonString, Task.class);
+                if (manager.getTaskById(task.getId()) == null) {
+                    manager.createTask(task);
+                } else {
+                    manager.updateTask(task);
+                }
+                h.sendResponseHeaders(201, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Задача создана".getBytes(DEFAULT_CHARSET));
                 }
                 break;
             case "DELETE":
-                if (path.endsWith("/task/") && rawQuery == null) {
+                if (!path.equals("/tasks/task/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                if (rawQuery == null) {
                     manager.deleteAllTasks();
                     System.out.println("Все задачи успешно удалены!");
                     h.sendResponseHeaders(200, 0);
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Все задачи удалены".getBytes(DEFAULT_CHARSET));
                     }
-                } else if (path.endsWith("/task/") && rawQuery != null) {
+                } else {
                     String id = getId(h);
                     if (id.isEmpty() || !isParsable(id)) {
-                        System.out.println("Не верно указан ID, указывается в пути числом: /task/?id={id}");
+                        System.out.println("Не верно указан ID, указывается в пути числом: /tasks/task/?id={id}");
                         h.sendResponseHeaders(400, 0);
                         try (OutputStream os = h.getResponseBody()) {
                             os.write("".getBytes());
@@ -310,24 +163,116 @@ public class HttpTaskServer {
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Задача успешно удалена".getBytes());
                     }
-                } else if (path.endsWith("/subtask/") && rawQuery == null) {
+                }
+                break;
+            default:
+                System.out.println("/tasks/task/ не работает с запросом: " + h.getRequestMethod());
+                h.sendResponseHeaders(405, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                }
+        }
+    }
+
+    private void subtasks(HttpExchange h) throws IOException {
+        String method = h.getRequestMethod();
+        String path = h.getRequestURI().getPath();
+        String rawQuery = h.getRequestURI().getRawQuery();
+
+        switch (method) {
+            case "GET":
+                String response;
+                if (!path.equals("/tasks/subtask/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                if (rawQuery == null) {
+                    response = gson.toJson(manager.getListOfAllSubtasks());
+                    if (manager.getListOfAllSubtasks().isEmpty()) {
+                        System.out.println("Список подзадач пустой");
+                    } else {
+                        System.out.println("Список подзадач успешно возвращен!");
+                    }
+                    h.sendResponseHeaders(200, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write(response.getBytes(DEFAULT_CHARSET));
+                    }
+                } else {
+                    String id = getId(h);
+                    if (id.isEmpty() || !isParsable(id)) {
+                        System.out.println("Не верно указан ID, указывается в пути числом: /tasks/subtask/?id={id}");
+                        h.sendResponseHeaders(400, 0);
+                        try (OutputStream os = h.getResponseBody()) {
+                            os.write("".getBytes());
+                        }
+                        return;
+                    } else if (manager.getSubtaskById(Integer.parseInt(id)) == null) {
+                        h.sendResponseHeaders(404, 0);
+                        try (OutputStream os = h.getResponseBody()) {
+                            os.write("Подзадача не найдена".getBytes());
+                        }
+                        return;
+                    }
+                    response = gson.toJson(manager.getSubtaskById(Integer.parseInt(id)));
+                    System.out.println("Значение для ID " + id + " успешно возвращено!");
+                    h.sendResponseHeaders(200, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write(response.getBytes());
+                    }
+                }
+                break;
+            case "POST":
+                if (!path.equals("/tasks/subtask/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                InputStream inputStream = h.getRequestBody();
+                String jsonString = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
+                Subtask subtask = gson.fromJson(jsonString, Subtask.class);
+                if (manager.getSubtaskById(subtask.getId()) == null) {
+                    manager.createSubtask(subtask);
+                } else {
+                    manager.updateSubtask(subtask);
+                }
+                h.sendResponseHeaders(201, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Подзадача создана".getBytes(DEFAULT_CHARSET));
+                }
+                break;
+            case "DELETE":
+                if (!path.equals("/tasks/subtask/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                if (rawQuery == null) {
                     manager.deleteAllSubtask();
                     System.out.println("Все подзадачи успешно удалены!");
                     h.sendResponseHeaders(200, 0);
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Все подзадачи удалены".getBytes(DEFAULT_CHARSET));
                     }
-                } else if (path.endsWith("/subtask/") && rawQuery != null) {
+                } else {
                     String id = getId(h);
                     if (id.isEmpty() || !isParsable(id)) {
-                        System.out.println("Не верно указан ID, указывается в пути числом: /subtask/?id={id}");
+                        System.out.println("Не верно указан ID, указывается в пути числом: /tasks/subtask/?id={id}");
                         h.sendResponseHeaders(400, 0);
                         try (OutputStream os = h.getResponseBody()) {
                             os.write("".getBytes());
                         }
                         return;
-                    }
-                    if (manager.getSubtaskById(Integer.parseInt(id)) == null) {
+                    } else if (manager.getSubtaskById(Integer.parseInt(id)) == null) {
                         h.sendResponseHeaders(404, 0);
                         try (OutputStream os = h.getResponseBody()) {
                             os.write("Подадача не найдена".getBytes());
@@ -340,14 +285,106 @@ public class HttpTaskServer {
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Подзадача успешно удалена".getBytes());
                     }
-                } else if (path.endsWith("/epic/") && rawQuery == null) {
+                }
+                break;
+            default:
+                System.out.println("/tasks/subtask/ не работает с запросом: " + h.getRequestMethod());
+                h.sendResponseHeaders(405, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                }
+        }
+    }
+
+    private void epic(HttpExchange h) throws IOException {
+        String method = h.getRequestMethod();
+        String path = h.getRequestURI().getPath();
+        String rawQuery = h.getRequestURI().getRawQuery();
+        switch (method) {
+            case "GET":
+                String response;
+                if (!path.equals("/tasks/epic/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                if (rawQuery == null) {
+                    response = gson.toJson(manager.getListOfAllEpic());
+                    if (manager.getListOfAllEpic().isEmpty()) {
+                        System.out.println("Список эпиков пустой");
+                    } else {
+                        System.out.println("Список эпиков успешно возвращен!");
+                    }
+                    h.sendResponseHeaders(200, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write(response.getBytes(DEFAULT_CHARSET));
+                    }
+                } else {
+                    String id = getId(h);
+                    if (id.isEmpty() || !isParsable(id)) {
+                        System.out.println("Не верно указан ID, указывается в пути числом: /tasks/epic/?id={id}");
+                        h.sendResponseHeaders(400, 0);
+                        try (OutputStream os = h.getResponseBody()) {
+                            os.write("".getBytes());
+                        }
+                        return;
+                    } else if (manager.getEpicById(Integer.parseInt(id)) == null) {
+                        h.sendResponseHeaders(404, 0);
+                        try (OutputStream os = h.getResponseBody()) {
+                            os.write("Эпик не найден".getBytes());
+                        }
+                        return;
+                    }
+                    response = gson.toJson(manager.getEpicById(Integer.parseInt(id)));
+                    System.out.println("Значение для ID " + id + " успешно возвращено!");
+                    h.sendResponseHeaders(200, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write(response.getBytes());
+                    }
+                }
+                break;
+            case "POST":
+                if (!path.equals("/tasks/epic/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                InputStream inputStream = h.getRequestBody();
+                String jsonString = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
+                Epic epic = gson.fromJson(jsonString, Epic.class);
+                if (manager.getEpicById(epic.getId()) == null) {
+                    manager.createEpic(epic);
+                } else {
+                    manager.updateEpic(epic);
+                }
+                h.sendResponseHeaders(201, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Эпик создан".getBytes(DEFAULT_CHARSET));
+                }
+                break;
+            case "DELETE":
+                if (!path.equals("/tasks/epic/")) {
+                    System.out.println("Not Found. На этом пути: " + path);
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                    }
+                    return;
+                }
+                if (rawQuery == null) {
                     manager.deleteAllEpic();
                     System.out.println("Все эпики успешно удалены!");
                     h.sendResponseHeaders(200, 0);
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Все эпики удалены".getBytes(DEFAULT_CHARSET));
                     }
-                } else if (path.endsWith("/epic/") && rawQuery != null) {
+                } else {
                     String id = getId(h);
                     if (id.isEmpty() || !isParsable(id)) {
                         System.out.println("Не верно указан ID, указывается в пути числом: /epic/?id={id}");
@@ -356,8 +393,7 @@ public class HttpTaskServer {
                             os.write("".getBytes());
                         }
                         return;
-                    }
-                    if (manager.getEpicById(Integer.parseInt(id)) == null) {
+                    } else if (manager.getEpicById(Integer.parseInt(id)) == null) {
                         h.sendResponseHeaders(404, 0);
                         try (OutputStream os = h.getResponseBody()) {
                             os.write("Эпик не найден".getBytes());
@@ -370,20 +406,137 @@ public class HttpTaskServer {
                     try (OutputStream os = h.getResponseBody()) {
                         os.write("Эпик успешно удален".getBytes());
                     }
-                } else {
-                    System.out.println("Not Found. На этом пути: " + path);
-                    h.sendResponseHeaders(404, 0);
-                    try (OutputStream os = h.getResponseBody()) {
-                        os.write("Not Found".getBytes(DEFAULT_CHARSET));
-                    }
                 }
                 break;
             default:
-                System.out.println("/tasks не работает с запросом: " + h.getRequestMethod());
+                System.out.println("/tasks/epic/ не работает с запросом: " + h.getRequestMethod());
                 h.sendResponseHeaders(405, 0);
                 try (OutputStream os = h.getResponseBody()) {
                     os.write("Not Found".getBytes(DEFAULT_CHARSET));
                 }
+        }
+    }
+
+    private void subtasksEpic(HttpExchange h) throws IOException {
+        String method = h.getRequestMethod();
+        String path = h.getRequestURI().getPath();
+        String rawQuery = h.getRequestURI().getRawQuery();
+
+        if ("GET".equals(method)) {
+            String response;
+            if (!path.equals("/tasks/subtask/epic/")) {
+                System.out.println("Not Found. На этом пути: " + path);
+                h.sendResponseHeaders(404, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                }
+                return;
+            }
+            if (rawQuery != null) {
+                String id = getId(h);
+                if (id.isEmpty() || !isParsable(id)) {
+                    System.out.println("Не верно указан ID, указывается в пути числом: /tasks/subtask/epic/?id={id}");
+                    h.sendResponseHeaders(400, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("".getBytes());
+                    }
+                    return;
+                } else if (manager.getEpicById(Integer.parseInt(id)) == null) {
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("Эпик не найден".getBytes());
+                    }
+                    return;
+                }
+                response = gson.toJson(manager.getAllSubtaskByEpic(manager.getEpicById(Integer.parseInt(id))));
+                if (manager.getAllSubtaskByEpic(manager.getEpicById(Integer.parseInt(id))).isEmpty()) {
+                    System.out.println("Список подзадач для эпика пуст");
+                } else {
+                    System.out.println("Значение для ID " + id + " успешно возвращено!");
+                }
+                h.sendResponseHeaders(200, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
+            } else {
+                System.out.println("Не верно введен путь, нужно указывать в формате: /tasks/subtask/epic/?id={id}");
+                h.sendResponseHeaders(400, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("".getBytes());
+                }
+            }
+        } else {
+            System.out.println("/tasks/subtask/epic/ не работает с запросом: " + h.getRequestMethod());
+            h.sendResponseHeaders(405, 0);
+            try (OutputStream os = h.getResponseBody()) {
+                os.write("Not Found".getBytes(DEFAULT_CHARSET));
+            }
+        }
+    }
+
+    private void history(HttpExchange h) throws IOException {
+        String method = h.getRequestMethod();
+        String path = h.getRequestURI().getPath();
+
+        if ("GET".equals(method)) {
+            String response;
+            if (!path.equals("/tasks/history")) {
+                System.out.println("Not Found. На этом пути: " + path);
+                h.sendResponseHeaders(404, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                }
+                return;
+            }
+            response = gson.toJson(manager.getHistory());
+            if (manager.getHistory().isEmpty()) {
+                System.out.println("Пустая история успешно возвращена");
+            } else {
+                System.out.println("История успешно возвращена");
+            }
+            h.sendResponseHeaders(200, 0);
+            try (OutputStream os = h.getResponseBody()) {
+                os.write(response.getBytes(DEFAULT_CHARSET));
+            }
+        } else {
+            System.out.println("/tasks/history не работает с запросом: " + h.getRequestMethod());
+            h.sendResponseHeaders(405, 0);
+            try (OutputStream os = h.getResponseBody()) {
+                os.write("Not Found".getBytes(DEFAULT_CHARSET));
+            }
+        }
+    }
+
+    private void prioritizedTasks(HttpExchange h) throws IOException {
+        String method = h.getRequestMethod();
+        String path = h.getRequestURI().getPath();
+
+        if ("GET".equals(method)) {
+            String response;
+            if (!path.equals("/tasks/")) {
+                System.out.println("Not Found. На этом пути: " + path);
+                h.sendResponseHeaders(404, 0);
+                try (OutputStream os = h.getResponseBody()) {
+                    os.write("Not Found".getBytes(DEFAULT_CHARSET));
+                }
+                return;
+            }
+            response = gson.toJson(manager.getPrioritizedTasks());
+            if (manager.getPrioritizedTasks().isEmpty()) {
+                System.out.println("Список приоритизированных задач пустой");
+            } else {
+                System.out.println("Список приоритизированных задач успешно возвращен");
+            }
+            h.sendResponseHeaders(200, 0);
+            try (OutputStream os = h.getResponseBody()) {
+                os.write(response.getBytes(DEFAULT_CHARSET));
+            }
+        } else {
+            System.out.println("/tasks/history не работает с запросом: " + h.getRequestMethod());
+            h.sendResponseHeaders(405, 0);
+            try (OutputStream os = h.getResponseBody()) {
+                os.write("Not Found".getBytes(DEFAULT_CHARSET));
+            }
         }
     }
 

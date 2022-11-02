@@ -25,9 +25,9 @@ public class KVServer {
         server.createContext("/load", this::load);
     }
 
-    //public static void main(String[] args) throws IOException {
-    //    new KVServer().start();
-    //}
+    /*public static void main(String[] args) throws IOException {
+        new KVServer().start();
+    }*/
 
     private void load(HttpExchange h) throws IOException {
         try {
@@ -42,6 +42,14 @@ public class KVServer {
                 if (key.isEmpty()) {
                     System.out.println("Key для возвращения пустой. key указывается в пути: /save/{key}");
                     h.sendResponseHeaders(400, 0);
+                    return;
+                }
+                if (data.get(key) == null) {
+                    System.out.println("Элемент по ключу key не найден");
+                    h.sendResponseHeaders(404, 0);
+                    try (OutputStream os = h.getResponseBody()) {
+                        os.write("".getBytes());
+                    }
                     return;
                 }
                 String value = data.get(key);

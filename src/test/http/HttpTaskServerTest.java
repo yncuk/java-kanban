@@ -40,928 +40,785 @@ class HttpTaskServerTest extends TaskManagerTest<HttpTaskManager> {
 
     @Test
     @DisplayName("Test GET then list tasks is empty")
-    void testGetThenListTasksIsEmpty() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetThenListTasksIsEmpty() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET tasks then list tasks no empty")
-    void testGetTasksThenListTasksNoEmpty() {
+    void testGetTasksThenListTasksNoEmpty() throws Exception {
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         manager.createTask(task);
         task = new Task("Купить воду", "В пятерочке", TaskStatus.DONE);
         manager.createTask(task);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"1\":{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1," +
-                    "\"status\":\"NEW\",\"taskType\":\"Task\"},\"2\":{\"name\":\"Купить воду\"," +
-                    "\"description\":\"В пятерочке\",\"id\":2,\"status\":\"DONE\",\"taskType\":\"Task\"}}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"1\":{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1," +
+                "\"status\":\"NEW\",\"taskType\":\"Task\"},\"2\":{\"name\":\"Купить воду\"," +
+                "\"description\":\"В пятерочке\",\"id\":2,\"status\":\"DONE\",\"taskType\":\"Task\"}}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET subtasks then list subtasks is empty")
-    void testGetSubtasksThenListSubtasksIsEmpty() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetSubtasksThenListSubtasksIsEmpty() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET subtasks then list subtasks no empty")
-    void testGetSubtasksThenListSubtasksNoEmpty() {
+    void testGetSubtasksThenListSubtasksNoEmpty() throws Exception {
         manager.createEpic(new Epic("Поход в магазин", "В макси", TaskStatus.NEW));
         Subtask subtask = new Subtask("Покупка молока", "1л", TaskStatus.NEW, 1);
         manager.createSubtask(subtask);
         subtask = new Subtask("Покупка сахара", "1кг", TaskStatus.DONE, 1);
         manager.createSubtask(subtask);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"2\":{\"idSubtaskForEpic\":1,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
-                    "\"id\":2,\"status\":\"NEW\",\"taskType\":\"Subtask\"},\"3\":{\"idSubtaskForEpic\":1," +
-                    "\"name\":\"Покупка сахара\",\"description\":\"1кг\",\"id\":3,\"status\":\"DONE\"," +
-                    "\"taskType\":\"Subtask\"}}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"2\":{\"idSubtaskForEpic\":1,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
+                "\"id\":2,\"status\":\"NEW\",\"taskType\":\"Subtask\"},\"3\":{\"idSubtaskForEpic\":1," +
+                "\"name\":\"Покупка сахара\",\"description\":\"1кг\",\"id\":3,\"status\":\"DONE\"," +
+                "\"taskType\":\"Subtask\"}}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET epic then list epic is empty")
-    void testGetEpicThenListEpicIsEmpty() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetEpicThenListEpicIsEmpty() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET epic then list epic no empty")
-    void testGetEpicThenListEpicNoEmpty() {
+    void testGetEpicThenListEpicNoEmpty() throws Exception {
         manager.createEpic(new Epic("Поход в магазин", "В макси", TaskStatus.NEW));
         manager.createEpic(new Epic("Поход в музей", "В центре", TaskStatus.NEW));
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"1\":{\"subtaskForEpic\":{},\"name\":\"Поход в магазин\"," +
-                    "\"description\":\"В макси\",\"id\":1,\"status\":\"NEW\",\"taskType\":\"Epic\"}," +
-                    "\"2\":{\"subtaskForEpic\":{},\"name\":\"Поход в музей\",\"description\":\"В центре\"," +
-                    "\"id\":2,\"status\":\"NEW\",\"taskType\":\"Epic\"}}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"1\":{\"subtaskForEpic\":{},\"name\":\"Поход в магазин\"," +
+                "\"description\":\"В макси\",\"id\":1,\"status\":\"NEW\",\"taskType\":\"Epic\"}," +
+                "\"2\":{\"subtaskForEpic\":{},\"name\":\"Поход в музей\",\"description\":\"В центре\"," +
+                "\"id\":2,\"status\":\"NEW\",\"taskType\":\"Epic\"}}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id = 1 and list tasks is empty")
-    void testGetTaskThenIdIs1AndListTasksIsEmpty() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=1"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Задача не найдена", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetTaskThenIdIs1AndListTasksIsEmpty() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=1"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Задача не найдена", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id = 4 but 4 tasks not found")
-    void testGetTaskThenIdIs4But4TaskNoExists() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=4"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Задача не найдена", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetTaskThenIdIs4But4TaskNoExists() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=4"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Задача не найдена", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id = 1 but 1 subtasks not found")
-    void testGetSubtaskThenIdIs1But1SubtaskNoExists() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/?id=1"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Подзадача не найдена", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetSubtaskThenIdIs1But1SubtaskNoExists() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/?id=1"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Подзадача не найдена", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id = 1 but 1 tasks not found")
-    void testGetEpicThenIdIs1But1EpicNoExists() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/?id=1"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Эпик не найден", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetEpicThenIdIs1But1EpicNoExists() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/?id=1"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Эпик не найден", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then task id = 1 and the first task exists")
-    void testGetTaskThenIdIs1And1TaskExists() {
+    void testGetTaskThenIdIs1And1TaskExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=1"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1,\"status\":\"NEW\"," +
-                    "\"duration\":{\"seconds\":1800,\"nanos\":0},\"startTime\":{\"date\":{\"year\":2022,\"month\":9," +
-                    "\"day\":1},\"time\":{\"hour\":12,\"minute\":0,\"second\":0,\"nano\":0}}," +
-                    "\"endTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12,\"minute\":30," +
-                    "\"second\":0,\"nano\":0}},\"taskType\":\"Task\"}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=1"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1,\"status\":\"NEW\"," +
+                "\"duration\":{\"seconds\":1800,\"nanos\":0},\"startTime\":{\"date\":{\"year\":2022,\"month\":9," +
+                "\"day\":1},\"time\":{\"hour\":12,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                "\"endTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12,\"minute\":30," +
+                "\"second\":0,\"nano\":0}},\"taskType\":\"Task\"}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then subtask id = 4 and the 4 subtask exists")
-    void testGetSubtaskThenIdIs4And4SubtaskExists() {
+    void testGetSubtaskThenIdIs4And4SubtaskExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/?id=4"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\",\"description\":\"1л\",\"id\":4," +
-                    "\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
-                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Subtask\"}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/?id=4"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\",\"description\":\"1л\",\"id\":4," +
+                "\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Subtask\"}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then epic id = 3 and the 3 epic exists")
-    void testGetEpicThenIdIs3And3EpicExists() {
+    void testGetEpicThenIdIs3And3EpicExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/?id=3"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"subtaskForEpic\":{\"4\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\"," +
-                    "\"description\":\"1л\",\"id\":4,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
-                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Subtask\"},\"5\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка сахара\"," +
-                    "\"description\":\"1кг\",\"id\":5,\"status\":\"DONE\",\"duration\":{\"seconds\":3600,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":12,\"day\":30},\"time\":{\"hour\":15," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
-                    "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Subtask\"}},\"name\":\"Поход в магазин\",\"description\":\"В макси\"," +
-                    "\"id\":3,\"status\":\"IN_PROGRESS\",\"duration\":{\"seconds\":5400,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
-                    "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Epic\"}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/?id=3"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"subtaskForEpic\":{\"4\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\"," +
+                "\"description\":\"1л\",\"id\":4,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Subtask\"},\"5\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка сахара\"," +
+                "\"description\":\"1кг\",\"id\":5,\"status\":\"DONE\",\"duration\":{\"seconds\":3600,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2022,\"month\":12,\"day\":30},\"time\":{\"hour\":15," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
+                "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Subtask\"}},\"name\":\"Поход в магазин\",\"description\":\"В макси\"," +
+                "\"id\":3,\"status\":\"IN_PROGRESS\",\"duration\":{\"seconds\":5400,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
+                "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Epic\"}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id task is wrong")
-    void testGetTaskThenIdIsWrong() {
+    void testGetTaskThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=k"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=k"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id subtask is wrong")
-    void testGetSubtaskThenIdIsWrong() {
+    void testGetSubtaskThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/?id=k"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/?id=k"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then id epic is wrong")
-    void testGetEpicThenIdIsWrong() {
+    void testGetEpicThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/?id=k"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/?id=k"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test GET epic subtasks then id epic is wrong")
-    void testGetEpicSubtasksThenIdIsWrong() {
+    void testGetEpicSubtasksThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/epic/?id=k"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/epic/?id=k"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test GET epic subtasks then epic id = 4 and 4 epic no exists")
-    void testGetEpicSubtasksThenIdEpicIs4AndNoExists() {
+    void testGetEpicSubtasksThenIdEpicIs4AndNoExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/epic/?id=4"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Эпик не найден", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/epic/?id=4"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Эпик не найден", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test GET epic subtasks then epic id = 3 and 3 epic exists")
-    void testGetEpicSubtasksThenIdEpicIs3AndEpicExists() {
+    void testGetEpicSubtasksThenIdEpicIs3AndEpicExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/epic/?id=3"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("{\"4\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
-                    "\"id\":4,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
-                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Subtask\"},\"5\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка сахара\"," +
-                    "\"description\":\"1кг\",\"id\":5,\"status\":\"DONE\",\"duration\":{\"seconds\":3600,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":12,\"day\":30},\"time\":{\"hour\":15," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
-                    "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Subtask\"}}", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/epic/?id=3"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("{\"4\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
+                "\"id\":4,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Subtask\"},\"5\":{\"idSubtaskForEpic\":3,\"name\":\"Покупка сахара\"," +
+                "\"description\":\"1кг\",\"id\":5,\"status\":\"DONE\",\"duration\":{\"seconds\":3600,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2022,\"month\":12,\"day\":30},\"time\":{\"hour\":15," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":12," +
+                "\"day\":30},\"time\":{\"hour\":16,\"minute\":0,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Subtask\"}}", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET history then history is empty")
-    void testGetHistoryThenHistoryIsEmpty() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/history"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("[]", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetHistoryThenHistoryIsEmpty() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/history"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("[]", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET history then history is no empty")
-    void testGetHistoryThenHistoryIsNoEmpty() {
+    void testGetHistoryThenHistoryIsNoEmpty() throws Exception {
         initStandardBehavior();
         manager.getTaskById(1);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/history"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("[{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1," +
-                    "\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":9," +
-                    "\"day\":1},\"time\":{\"hour\":12,\"minute\":30,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Task\"}]", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/history"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("[{\"name\":\"Купить хлеб\",\"description\":\"В магните\",\"id\":1," +
+                "\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":9," +
+                "\"day\":1},\"time\":{\"hour\":12,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Task\"}]", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET prioritized tasks then history is empty")
-    void testGetPrioritizedTasksThenHistoryIsEmpty() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("[]", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testGetPrioritizedTasksThenHistoryIsEmpty() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("[]", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET prioritized tasks then history is no empty")
-    void testGetPrioritizedTasksThenHistoryIsNoEmpty() {
+    void testGetPrioritizedTasksThenHistoryIsNoEmpty() throws Exception {
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
-        task.setStartTime(LocalDateTime.of(2022, Month.SEPTEMBER,1,12,0));
+        task.setStartTime(LocalDateTime.of(2022, Month.SEPTEMBER, 1, 12, 0));
         task.setDuration(30);
         manager.createTask(task);
         manager.createEpic(new Epic("Поход в магазин", "В макси", TaskStatus.NEW));
         Subtask subtask = new Subtask("Покупка молока", "1л", TaskStatus.NEW, 2);
-        subtask.setStartTime(LocalDateTime.of(2021, Month.OCTOBER,24,11,0));
+        subtask.setStartTime(LocalDateTime.of(2021, Month.OCTOBER, 24, 11, 0));
         subtask.setDuration(30);
         manager.createSubtask(subtask);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("[{\"idSubtaskForEpic\":2,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
-                    "\"id\":3,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
-                    "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Subtask\"},{\"name\":\"Купить хлеб\",\"description\":\"В магните\"," +
-                    "\"id\":1,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
-                    "\"startTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12," +
-                    "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":9," +
-                    "\"day\":1},\"time\":{\"hour\":12,\"minute\":30,\"second\":0,\"nano\":0}}," +
-                    "\"taskType\":\"Task\"}]", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("[{\"idSubtaskForEpic\":2,\"name\":\"Покупка молока\",\"description\":\"1л\"," +
+                "\"id\":3,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2021,\"month\":10,\"day\":24},\"time\":{\"hour\":11," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2021,\"month\":10," +
+                "\"day\":24},\"time\":{\"hour\":11,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Subtask\"},{\"name\":\"Купить хлеб\",\"description\":\"В магните\"," +
+                "\"id\":1,\"status\":\"NEW\",\"duration\":{\"seconds\":1800,\"nanos\":0}," +
+                "\"startTime\":{\"date\":{\"year\":2022,\"month\":9,\"day\":1},\"time\":{\"hour\":12," +
+                "\"minute\":0,\"second\":0,\"nano\":0}},\"endTime\":{\"date\":{\"year\":2022,\"month\":9," +
+                "\"day\":1},\"time\":{\"hour\":12,\"minute\":30,\"second\":0,\"nano\":0}}," +
+                "\"taskType\":\"Task\"}]", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test GET then wrong path")
-    void testGetThenWrongPath() {
+    void testGetThenWrongPath() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/tasks"))
-                    .GET()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Not Found", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/tasks"))
+                .GET()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Not Found", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test POST task")
-    void testPostTask() {
+    void testPostTask() throws Exception {
         Task task = new Task("Купить хлеб", "В магните", TaskStatus.NEW);
         manager.createTask(task);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/"))
-                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(task)))
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/"))
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(task)))
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
 
-            assertEquals(task, TaskFromJson.taskFromJson(kvTaskClient.load("tasks"), 1));
-            assertEquals("Задача создана", accept);
-            assertEquals(201, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        assertEquals(task, FromJsonConverter.fromJson(kvTaskClient.load("tasks"), 1));
+        assertEquals("Задача создана", accept);
+        assertEquals(201, statusCode);
     }
 
     @Test
     @DisplayName("Test POST subtask")
-    void testPostSubtask() {
+    void testPostSubtask() throws Exception {
         Epic epic = new Epic("Поход в магазин", "В макси", TaskStatus.NEW);
         manager.createEpic(epic);
         Subtask subtask = new Subtask("Покупка молока", "1л", TaskStatus.NEW, 1);
         manager.createSubtask(subtask);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/"))
-                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(subtask)))
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/"))
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(subtask)))
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
 
-            assertEquals(subtask, TaskFromJson.subtaskFromJson(kvTaskClient.load("subtasks"), 2));
-            assertEquals("Подзадача создана", accept);
-            assertEquals(201, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        assertEquals(subtask, FromJsonConverter.fromJson(kvTaskClient.load("subtasks"), 2));
+        assertEquals("Подзадача создана", accept);
+        assertEquals(201, statusCode);
     }
 
     @Test
     @DisplayName("Test POST epic")
-    void testPostEpic() {
+    void testPostEpic() throws Exception {
         Epic epic = new Epic("Поход в магазин", "В макси", TaskStatus.NEW);
         manager.createEpic(epic);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/"))
-                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(epic)))
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/"))
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(epic)))
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
 
-            assertEquals(epic, TaskFromJson.epicFromJson(kvTaskClient.load("epic"), 1));
-            assertEquals("Эпик создан", accept);
-            assertEquals(201, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        assertEquals(epic, FromJsonConverter.fromJson(kvTaskClient.load("epic"), 1));
+        assertEquals("Эпик создан", accept);
+        assertEquals(201, statusCode);
     }
 
     @Test
     @DisplayName("Test POST then wrong path")
-    void testPostThenWrongPath() {
+    void testPostThenWrongPath() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/task"))
-                    .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(manager.getTaskById(1))))
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Not Found", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/task"))
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(manager.getTaskById(1))))
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Not Found", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE all tasks")
-    void testDeleteAllTasks() {
+    void testDeleteAllTasks() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
 
-            assertEquals("{}", kvTaskClient.load("tasks"));
-            assertEquals("Все задачи удалены", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+
+        assertEquals("{}", kvTaskClient.load("tasks"));
+        assertEquals("Все задачи удалены", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE all subtasks")
-    void testDeleteAllSubtasks() {
+    void testDeleteAllSubtasks() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
 
-            assertEquals("{}", kvTaskClient.load("subtasks"));
-            assertEquals("Все подзадачи удалены", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+
+        assertEquals("{}", kvTaskClient.load("subtasks"));
+        assertEquals("Все подзадачи удалены", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE all epic")
-    void testDeleteAllEpic() {
+    void testDeleteAllEpic() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
 
-            assertEquals("{}", kvTaskClient.load("epic"));
-            assertEquals("Все эпики удалены", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+
+        assertEquals("{}", kvTaskClient.load("epic"));
+        assertEquals("Все эпики удалены", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then task id = 1 and the first task exists")
-    void testDeleteTaskThenIdIs1And1TaskExists() {
+    void testDeleteTaskThenIdIs1And1TaskExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=1"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
 
-            assertNull(manager.getTaskById(1));
-            assertEquals("Задача успешно удалена", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=1"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+
+        assertNull(manager.getTaskById(1));
+        assertEquals("Задача успешно удалена", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then subtask id = 4 and the 4 subtask exists")
-    void testDeleteSubtaskThenIdIs4And4SubtaskExists() {
+    void testDeleteSubtaskThenIdIs4And4SubtaskExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/?id=4"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
 
-            assertNull(manager.getSubtaskById(4));
-            assertEquals("Подзадача успешно удалена", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/?id=4"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+
+        assertNull(manager.getSubtaskById(4));
+        assertEquals("Подзадача успешно удалена", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then epic id = 3 and the 3 epic exists")
-    void testDeleteEpicThenIdIs3And3EpicExists() {
+    void testDeleteEpicThenIdIs3And3EpicExists() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/?id=3"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
 
-            assertNull(manager.getEpicById(3));
-            assertEquals("Эпик успешно удален", accept);
-            assertEquals(200, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/?id=3"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+
+        assertNull(manager.getEpicById(3));
+        assertEquals("Эпик успешно удален", accept);
+        assertEquals(200, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then id task is wrong")
-    void testDeleteTaskThenIdIsWrong() {
+    void testDeleteTaskThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=k"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=k"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then id subtask is wrong")
-    void testDeleteSubtaskThenIdIsWrong() {
+    void testDeleteSubtaskThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/?id=k"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/?id=k"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then id epic is wrong")
-    void testDeleteEpicThenIdIsWrong() {
+    void testDeleteEpicThenIdIsWrong() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/?id=k"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("", accept);
-            assertEquals(400, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/?id=k"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("", accept);
+        assertEquals(400, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then id = 4 but 4 task not found")
-    void testDeleteTaskThenIdIs4But4TaskNoExists() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/?id=4"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Задача не найдена", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testDeleteTaskThenIdIs4But4TaskNoExists() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/?id=4"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Задача не найдена", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then id = 1 but 1 subtask not found")
-    void testDeleteSubtaskThenIdIs1But1SubtaskNoExists() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/subtask/?id=1"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Подадача не найдена", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testDeleteSubtaskThenIdIs1But1SubtaskNoExists() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/subtask/?id=1"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Подадача не найдена", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then id = 1 but 1 epic not found")
-    void testDeleteEpicThenIdIs1But1EpicNoExists() {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/epic/?id=1"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Эпик не найден", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+    void testDeleteEpicThenIdIs1But1EpicNoExists() throws Exception {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/epic/?id=1"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Эпик не найден", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test DELETE then wrong path")
-    void testDeleteThenWrongPath() {
+    void testDeleteThenWrongPath() throws Exception {
         initStandardBehavior();
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task/task"))
-                    .DELETE()
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Not Found", accept);
-            assertEquals(404, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task/task"))
+                .DELETE()
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Not Found", accept);
+        assertEquals(404, statusCode);
     }
 
     @Test
     @DisplayName("Test query that doesn't work")
-    void testQueryThatNotWork() {
+    void testQueryThatNotWork() throws Exception {
         initStandardBehavior();
         Task task = manager.getTaskById(1);
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(URL + "/tasks/task1/"))
-                    .PUT(HttpRequest.BodyPublishers.ofString(gson.toJson(task)))
-                    .build();
-            HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            String accept = send.body();
-            int statusCode = send.statusCode();
-            assertEquals("Not Found", accept);
-            assertEquals(405, statusCode);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(URL + "/tasks/task1/"))
+                .PUT(HttpRequest.BodyPublishers.ofString(gson.toJson(task)))
+                .build();
+        HttpResponse<String> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        String accept = send.body();
+        int statusCode = send.statusCode();
+        assertEquals("Not Found", accept);
+        assertEquals(405, statusCode);
     }
 
     @AfterEach

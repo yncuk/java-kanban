@@ -43,7 +43,7 @@ public class HttpTaskManager extends FileBackedTasksManager {
         taskClient.put("tasks", gson.toJson(taskHashMap));
         taskClient.put("subtasks", gson.toJson(subtaskHashMap));
         taskClient.put("epic", gson.toJson(epicHashMap));
-        taskClient.put("history", gson.toJson(historyManager));
+        taskClient.put("history", gson.toJson(historyManager.getHistory()));
         //System.out.println(taskClient.load("tasks"));
     }
 }

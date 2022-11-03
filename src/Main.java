@@ -11,7 +11,7 @@ import java.time.Month;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException { //выполняется частично, почему то Stackoverflow бросает
+    public static void main(String[] args) throws IOException {
 
         KVServer server = new KVServer();
         server.start();
@@ -107,6 +107,8 @@ public class Main {
             System.out.println(taskSort.getStartTime());
         }
 
+        server.stop();
+        server1.stop();
         //manager.deleteEpicById(3);
         //manager.deleteSubtaskById(5);
         //System.out.println(manager.getHistory());
